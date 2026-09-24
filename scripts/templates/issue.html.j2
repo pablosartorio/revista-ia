@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ meta.titulo_numero or "Cóndor — Número 00" }}</title>
+<style>
+  :root {
+    --bg: #0a0f1e; --panel: #111829; --texto: #dbe2f0; --tenue: #8a97b1;
+    --borde: #1e2942; --acento: #6366f1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--texto);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16.5px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 72px; }
+  header.top { border-bottom: 1px solid var(--borde); padding: 52px 0 28px; margin-bottom: 8px; }
+  .badge {
+    display: inline-block; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: #0a0f1e; background: linear-gradient(135deg, #8b5cf6, #0ea5e9);
+    padding: 4px 11px; border-radius: 3px; font-weight: 700;
+  }
+  h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 18px 0 14px; letter-spacing: -.022em; font-weight: 660; }
+  .meta { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: var(--tenue); display: flex; flex-wrap: wrap; gap: 18px; }
+  .meta b { color: #b9c4da; font-weight: 600; }
+  .concepto { font-size: 15px; color: #c4cee2; margin-top: 18px; max-width: 640px; }
+  .concepto em { color: var(--tenue); }
+
+  section { padding-top: 30px; margin-top: 30px; border-top: 1px solid var(--borde); }
+  section:first-of-type { border-top: 0; }
+  h2.seccion { font-size: 13px; letter-spacing: .13em; text-transform: uppercase; color: var(--acento); margin: 0 0 22px; font-weight: 700; display: flex; align-items: center; gap: 11px; }
+  .sigla { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10px; letter-spacing: .06em; color: var(--acento); border: 1px solid var(--acento); border-radius: 3px; padding: 2px 6px; opacity: .78; }
+
+  article.item { margin: 0 0 14px; }
+  h3 { font-size: 20.5px; line-height: 1.32; margin: 0 0 11px; letter-spacing: -.011em; font-weight: 640; color: #f0f4fc; }
+  p { margin: 0 0 13px; }
+
+  .fuente { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: var(--tenue); margin-top: 12px; padding-left: 13px; border-left: 2px solid var(--acento); }
+  .estado { display: inline-block; margin-top: 6px; font-family: ui-monospace, monospace; font-size: 11.5px; }
+  .estado.confirmado { color: #34d399; }
+  .estado.no_verificable { color: #fbbf24; }
+  .estado.contradicho { color: #f87171; }
+
+  a { color: var(--acento); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.16); }
+  a:hover { border-bottom-color: currentColor; }
+
+  .feature { background: rgba(255,255,255,.03); border: 1px solid var(--borde); border-radius: 8px; padding: 24px 26px; }
+  .feature .bajada { color: #c4cee2; font-size: 17px; margin-bottom: 16px; }
+  .warn { margin-top: 14px; font-size: 12.5px; color: #fbbf24; border-left: 2px solid #fbbf24; padding-left: 10px; }
+
+  footer.bottom { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--borde); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; color: var(--tenue); }
+  footer.bottom .disclaimer { color: #fbbf24; margin-bottom: 8px; }
+
+  @media print {
+    :root { --bg: #fff; --texto: #14181f; --tenue: #55606f; --borde: #d6dbe4; }
+    body { font-size: 11pt; } .wrap { max-width: none; padding: 0; }
+    h3, h1 { color: #0b0f16; } .badge { background: none; color: #4338ca; border: 1px solid #4338ca; }
+    a { color: #1f2937; border: 0; } section, article.item { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <span class="badge">Cóndor · Piloto</span>
+  <h1>{{ meta.titulo_numero or "Cóndor — Número 00" }}</h1>
+  <div class="meta">
+    <span>Generado <b>{{ meta.fecha }}</b></span>
+    <span>Semana ISO <b>{{ meta.semana_iso }}</b></span>
+    <span>Foco <b>IA global · Argentina · LatAm · Ciencia y Espacio</b></span>
+  </div>
+  <p class="concepto">{{ meta.concepto_tapa }}<br><em>Nota destacada: {{ meta.nota_destacada }}</em></p>
+</header>
+
+{% if feature %}
+<section style="--acento:#0ea5e9">
+<h2 class="seccion"><span class="sigla">TAPA</span>Nota de fondo</h2>
+<div class="feature">
+<h3>{{ feature.titulo }}</h3>
+<p class="bajada">{{ feature.bajada }}</p>
+<p>{{ feature.cuerpo }}</p>
+{% if feature.fuentes %}
+<p class="fuente">{% for f in feature.fuentes %}<a href="{{ f.url }}" target="_blank" rel="noopener">{{ f.nombre }}</a>{{ " · " if not loop.last }}{% endfor %}</p>
+{% endif %}
+{% if feature.tiene_contradichos %}
+<p class="warn">⚠ una o más afirmaciones de esta nota no pudieron confirmarse de forma independiente — ver detalle en el JSON del número.</p>
+{% endif %}
+</div>
+</section>
+{% endif %}
+
+{% for s in secciones %}
+<section style="--acento:{{ s.color_acento }}">
+<h2 class="seccion"><span class="sigla">{{ s.sigla }}</span>{{ s.seccion }}</h2>
+<article class="item">
+<h3>{{ s.item.titulo }}</h3>
+<p>{{ s.item.cuerpo }}</p>
+{% if s.item.open_weight %}<p><em>Licencia: {{ s.item.open_weight }}</em></p>{% endif %}
+<p class="fuente"><a href="{{ s.item.fuente_url }}" target="_blank" rel="noopener">{{ s.item.fuente_nombre }}</a> — {{ s.item.fecha }}</p>
+<span class="estado {{ (s.factcheck.estado or 'no_verificable') }}">{{ s.estado_label }}{% if s.factcheck.nota %} — {{ s.factcheck.nota }}{% endif %}</span>
+</article>
+</section>
+{% endfor %}
+
+<footer class="bottom">
+<div class="disclaimer">⚠ Ensayo piloto: pasó por fact-check automático adversarial, no por revisión humana final. Tratar como borrador, no como publicación.</div>
+Secciones publicadas: {{ secciones|length }} | Secciones excluidas por fact-check: {{ descartados|length if descartados else 0 }} | Semana ISO: {{ meta.semana_iso }}
+</footer>
+</div>
+</body>
+</html>

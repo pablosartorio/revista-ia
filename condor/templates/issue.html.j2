@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cóndor Nº {{ numero }}{% if borrador %} (borrador){% endif %}</title>
+<style>
+{% include "_estilos.css.j2" %}
+  .banda-borrador { position: sticky; top: 0; z-index: 5; background: #422006; color: var(--warn); border-bottom: 1px solid #713f12; font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; padding: 8px 20px; text-align: center; }
+  header.tapa { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 32px; align-items: center; padding: 44px 0 30px; border-bottom: 1px solid var(--borde); }
+  header.tapa img { border-radius: 6px; box-shadow: 0 18px 60px rgba(0,0,0,.45); border: 1px solid var(--borde); }
+  header.tapa .concepto { color: #c4cee2; font-size: 15.5px; margin-top: 14px; }
+  @media (max-width: 720px) { header.tapa { grid-template-columns: 1fr; } }
+  .feature { background: rgba(255,255,255,.03); border: 1px solid var(--borde); border-radius: 8px; padding: 24px 26px; }
+  .feature .bajada, article .bajada { color: #c4cee2; font-size: 17px; }
+  .caja-verif { font-size: 14.5px; }
+  .caja-verif ul { margin: 8px 0 0; padding-left: 18px; }
+  footer { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--borde); font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--tenue); }
+</style>
+</head>
+<body>
+{% if borrador %}
+<div class="banda-borrador">BORRADOR · pendiente de revisión humana · estado: {{ resumen.estado }} · {{ resumen.pendientes|length }} bloque(s) sin decisión</div>
+{% endif %}
+<div class="wrap">
+<header class="tapa">
+  <div>
+    {% if tapa_src %}<img src="{{ tapa_src }}" alt="Tapa de Cóndor Nº {{ numero }}: {{ meta.titulo_numero }}">{% endif %}
+  </div>
+  <div>
+    <span class="badge">Cóndor · Nº {{ numero }}</span>
+    <h1>{{ meta.titulo_numero }}</h1>
+    <div class="meta">
+      <span>Fecha <b>{{ meta.fecha }}</b></span>
+      <span>Semana ISO <b>{{ meta.semana_iso }}</b></span>
+    </div>
+    <p class="concepto">{{ meta.concepto_tapa }}</p>
+  </div>
+</header>
+
+{% if feature %}
+<section style="--acento:{{ feature.acento }}">
+<h2 class="seccion"><span class="sigla">TAPA</span>Nota de fondo</h2>
+<div class="feature">
+<h3>{{ feature.titulo }}</h3>
+{% if feature.bajada %}<p class="bajada">{{ feature.bajada }}</p>{% endif %}
+{% for p in feature.cuerpo|parrafos %}<p>{{ p }}</p>{% endfor %}
+{% if feature.fuentes %}
+<p class="fuente">{% for f in feature.fuentes %}<a href="{{ f.url }}" target="_blank" rel="noopener">{{ f.nombre }}</a>{{ " · " if not loop.last }}{% endfor %}</p>
+{% endif %}
+</div>
+</section>
+{% endif %}
+
+{% for s in secciones %}
+<section style="--acento:{{ s.acento }}">
+<h2 class="seccion"><span class="sigla">{{ s.sigla }}</span>{{ s.seccion }}</h2>
+<article>
+<h3>{% if s.retirado %}[retirado] {% endif %}{{ s.titulo }}</h3>
+{% if s.bajada %}<p class="bajada">{{ s.bajada }}</p>{% endif %}
+{% for p in s.cuerpo|parrafos %}<p>{{ p }}</p>{% endfor %}
+{% if s.open_weight and s.open_weight != "no aplica" %}<p><em>Licencia: {{ s.open_weight }}</em></p>{% endif %}
+<p class="fuente">{% if s.fuente_url and s.fuente_url.startswith("http") %}<a href="{{ s.fuente_url }}" target="_blank" rel="noopener">{{ s.fuente_nombre }}</a>{% else %}{{ s.fuente_nombre }}{% endif %} — {{ s.fecha }}</p>
+</article>
+</section>
+{% endfor %}
+
+<section style="--acento:#94a3b8">
+<h2 class="seccion"><span class="sigla">✓</span>Cómo verificamos este número</h2>
+<div class="panel caja-verif">
+<p>Cada nota se descompuso en <b>{{ verificacion.total }}</b> afirmaciones con dato duro, y cada una se verificó de forma independiente contra la fuente citada y búsquedas propias, con un modelo distinto al que la redactó. Además, la nota de fondo se contrastó contra las secciones: se detectaron <b>{{ verificacion.conflictos }}</b> conflicto(s) entre notas, cada uno resuelto con un debate entre un defensor, un escéptico y un juez.</p>
+<ul>
+{% for estado, n in verificacion.conteo|dictsort %}<li>{{ n }} afirmación(es) {{ verificacion.etiquetas.get(estado, estado) }}(s)</li>{% endfor %}
+</ul>
+{% if verificacion.aceptadas_por_editor %}
+<p style="margin-top:12px">Afirmaciones que no pudieron verificarse de forma independiente y que la edición humana decidió publicar igual:</p>
+<ul>{% for a in verificacion.aceptadas_por_editor %}<li>{{ a.texto }}</li>{% endfor %}</ul>
+{% endif %}
+</div>
+</section>
+
+<footer>
+{% if borrador %}Borrador generado por la redacción multi-agente. No publicar sin completar el checkpoint humano (`condor revision {{ numero }}`).{% else %}Publicado tras revisión humana{% if revisor %} ({{ revisor }}){% endif %}. Semana ISO {{ meta.semana_iso }}.{% endif %}
+</footer>
+</div>
+</body>
+</html>

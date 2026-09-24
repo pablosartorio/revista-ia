@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisión — Cóndor Nº {{ numero }}</title>
+<style>
+{% include "_estilos.css.j2" %}
+  header { padding: 40px 0 22px; border-bottom: 1px solid var(--borde); }
+  .estado-chip { display: inline-block; font-family: ui-monospace, Menlo, monospace; font-size: 12px; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--warn); color: var(--warn); }
+  .estado-chip.aprobado, .estado-chip.publicado { border-color: var(--ok); color: var(--ok); }
+  .cmd { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; background: #060a14; border: 1px solid var(--borde); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: pre; color: #c7d2fe; }
+  .riesgo { border-left: 3px solid var(--warn); padding: 6px 10px; margin: 6px 0; background: rgba(251,191,36,.06); font-size: 14px; }
+  .riesgo.alto { border-left-color: var(--mal); background: rgba(248,113,113,.07); }
+  .bloque { margin-top: 26px; }
+  .bloque > h3 { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .decision { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  .decision.ok { color: var(--ok); } .decision.pend { color: var(--warn); } .decision.venc { color: var(--mal); }
+  details { margin: 10px 0; } summary { cursor: pointer; color: #c4cee2; font-size: 14px; }
+  .diff { font-size: 14.5px; background: #0c1324; border: 1px solid var(--borde); border-radius: 6px; padding: 12px 14px; }
+  .tapas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .tapas figure { margin: 0; } .tapas figcaption { font-size: 13px; color: var(--tenue); margin-top: 6px; }
+  .tapas .ganador img { outline: 3px solid var(--ok); }
+  .debate { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13.5px; }
+  @media (max-width: 720px) { .debate { grid-template-columns: 1fr; } }
+  .small { font-size: 13px; color: var(--tenue); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="badge">Paquete de revisión</span>
+  <h1>Cóndor Nº {{ numero }} — {{ meta.titulo_numero }}</h1>
+  <div class="meta">
+    <span>Estado <span class="estado-chip {{ resumen.estado }}">{{ resumen.estado }}</span></span>
+    <span>Bloques <b>{{ resumen.filas|length }}</b></span>
+    <span>Pendientes <b>{{ resumen.pendientes|length }}</b></span>
+    <span>Con riesgos abiertos <b>{{ resumen.bloqueantes|length }}</b></span>
+    <span>Afirmaciones <b>{{ verificacion.total }}</b></span>
+    <span>Conflictos entre notas <b>{{ conflictos|length }}</b></span>
+  </div>
+</header>
+
+<section style="--acento:#fbbf24">
+<h2 class="seccion">Qué tenés que decidir</h2>
+<p>Ninguna decisión de esta página la puede tomar un agente: cada comando pide tu frase secreta de revisor/a y firma la decisión con ella, y <span class="mono">publicar</span> rechaza cualquier decisión sin tu firma. Corrélos vos, desde <span class="mono">~/revista-ia</span>. La primera vez, creá tu frase con <span class="mono">uv run condor clave --revisor "Tu Nombre"</span>.</p>
+<ol>
+  <li><b>Bloques sin riesgos</b> ({{ resumen.pendientes|length - resumen.bloqueantes|length }}): se pueden aprobar juntos. <code class="mono">--todo</code> sólo aprueba los que no tienen riesgos abiertos.</li>
+  <li><b>Bloques con riesgos</b> ({{ resumen.bloqueantes|length }}): hay que decidirlos uno por uno: aprobar con una nota que justifique, o retirar.</li>
+  <li><b>Tapa</b>: confirmar la sugerida por los jueces o elegir otra. Elegir la tapa también aprueba el título del número y el concepto de tapa.</li>
+</ol>
+<div class="cmd">uv run condor aprobar {{ numero }} --todo --revisor "Tu Nombre"
+{% for f in resumen.bloqueantes %}uv run condor aprobar {{ numero }} --bloque {{ f.clave }} --revisor "Tu Nombre" --nota "por qué se publica igual"
+uv run condor retirar {{ numero }} --bloque {{ f.clave }} --revisor "Tu Nombre" --motivo "..."
+{% endfor %}uv run condor tapa {{ numero }} {{ tapa.ganador or "A" }} --revisor "Tu Nombre"
+uv run condor estado {{ numero }}
+uv run condor publicar {{ numero }} --revisor "Tu Nombre"</div>
+<p class="small" style="margin-top:10px">Si editás a mano el texto de un bloque en <span class="mono">data/numero-{{ numero }}.json</span>, su aprobación vence sola (se aprueba el hash del contenido) y hay que volver a decidirlo. Después de editar, regenerá este paquete con <span class="mono">uv run condor revision {{ numero }}</span>.</p>
+</section>
+
+<section style="--acento:#0ea5e9">
+<h2 class="seccion">Tapa</h2>
+{% if tapa.candidatos %}
+<div class="tapas">
+{% for c in tapa.candidatos %}
+<figure class="{{ 'ganador' if c.id == tapa.ganador }}">
+  <a href="{{ c.png }}" target="_blank"><img src="{{ c.png }}" alt="Candidato {{ c.id }}"></a>
+  <figcaption>
+    <b>{{ c.id }} · {{ c.angulo }}</b>{% if c.id == tapa.ganador %} — sugerida por los jueces{% endif %}{% if c.id == tapa_elegida_id %} — <b>elegida</b>{% endif %}<br>
+    Puntaje: <b>{{ c.total if c.total is not none else "—" }}</b>/50 (promedio de los jueces{% if c.jueces_que_puntuaron is defined %}: {{ c.jueces_que_puntuaron }} puntuaron{% endif %}){% if c.validacion %} · validación: {{ "ok" if c.validacion.ok else "FALLA" }}{% endif %}<br>
+    {{ c.descripcion }}
+    {% if c.problemas %}<br><span style="color:var(--warn)">Problemas señalados: {{ c.problemas|join("; ") }}</span>{% endif %}
+  </figcaption>
+</figure>
+{% endfor %}
+</div>
+{% if tapa.jueces %}
+<details><summary>Fundamentos de los jueces</summary>
+{% for j in tapa.jueces %}<p><b>{{ j.lente }}</b> prefirió <b>{{ j.preferido }}</b>: {{ j.razon }}</p>{% endfor %}
+</details>
+{% endif %}
+{% if tapa.correccion %}<p class="small">Ronda de corrección del ganador: {{ tapa.correccion }}</p>{% endif %}
+{% if meta.dato_ancla %}<p class="small">Dato ancla de la tapa data-driven: <b>{{ meta.dato_ancla.valor }}</b> ({{ meta.dato_ancla.id }}: {{ meta.dato_ancla.texto }})</p>{% endif %}
+{% if resumen.tapa_elegida %}<p class="small">Tapa elegida: {{ resumen.tapa_elegida.candidato }} — {{ "vigente" if resumen.tapa_ok else "NO vigente: " ~ resumen.tapa_motivo }}</p>{% endif %}
+{% for r in resumen.tapa_riesgos %}<div class="riesgo alto"><b>{{ r.tipo }}</b>{% if r.ref %} [{{ r.ref }}]{% endif %}: {{ r.detalle }}</div>{% endfor %}
+{% else %}
+<div class="riesgo alto">El workflow no produjo candidatos de tapa válidos.</div>
+{% endif %}
+</section>
+
+{% if conflictos %}
+<section style="--acento:#f97316">
+<h2 class="seccion">Conflictos entre notas y cómo se resolvieron</h2>
+{% for c in conflictos %}
+{% set r = resoluciones.get(c.id) %}
+{% set d = debates.get(c.id) %}
+<div class="panel" style="margin-bottom:14px">
+  <p><b>{{ c.id }}</b> · <span class="mono small">{{ c.tipo }} · {{ c.bloques|join(", ") }} · origen: {{ c.origen }}</span><br>{{ c.descripcion }}</p>
+  {% if d %}
+  <div class="debate">
+    <div><b>Defensor</b> ({{ d.defensor.valor_sostenido if d.defensor else "—" }}): {{ d.defensor.argumento if d.defensor else "no respondió" }}
+      {% if d.defensor and d.defensor.evidencia %}<br>{% for e in d.defensor.evidencia %}<a href="{{ e.url }}" target="_blank" rel="noopener">fuente</a> {% endfor %}{% endif %}</div>
+    <div><b>Escéptico</b> ({{ d.esceptico.valor_sostenido if d.esceptico else "—" }}): {{ d.esceptico.argumento if d.esceptico else "no respondió" }}
+      {% if d.esceptico and d.esceptico.evidencia %}<br>{% for e in d.esceptico.evidencia %}<a href="{{ e.url }}" target="_blank" rel="noopener">fuente</a> {% endfor %}{% endif %}</div>
+  </div>
+  {% endif %}
+  {% if r %}
+  <p style="margin-top:10px"><b>Juez:</b> <span class="est {{ 'confirmado' if r.decision == 'mantener' else ('sin_consenso' if r.decision == 'sin_consenso' else 'corregido') }}">{{ r.decision }}</span> (confianza {{ r.confianza }}){% if r.valor_correcto %} · valor correcto: <b>{{ r.valor_correcto }}</b>{% endif %}<br>{{ r.razonamiento }}</p>
+  {% if r.bloques_pendientes %}<div class="riesgo alto">La corrección no pudo aplicarse con las guardas en: {{ r.bloques_pendientes|join(", ") }}</div>{% endif %}
+  {% else %}
+  <div class="riesgo alto">Sin resolución.</div>
+  {% endif %}
+</div>
+{% endfor %}
+{% if descartados %}
+<details><summary>{{ descartados|length }} candidato(s) a conflicto descartados por el reconciliador</summary>
+<ul>{% for x in descartados %}<li class="small">{{ x.descripcion }} — <i>{{ x.razon }}</i></li>{% endfor %}</ul>
+</details>
+{% endif %}
+</section>
+{% endif %}
+
+<section style="--acento:#8b5cf6">
+<h2 class="seccion">Bloque por bloque</h2>
+{% for b in todos %}
+<div class="bloque panel" style="--acento:{{ b.acento }}">
+  <h3><span class="sigla">{{ b.sigla }}</span> {{ b.titulo }}
+    {% if b.fila.vigente %}<span class="decision ok">✓ {{ b.fila.decision.accion }} · {{ b.fila.decision.revisor }}</span>
+    {% elif b.fila.vencida %}<span class="decision venc">✗ aprobación vencida ({{ b.fila.motivo_vencida }})</span>
+    {% else %}<span class="decision pend">● pendiente</span>{% endif %}
+  </h3>
+  <p class="small mono">clave {{ b.clave }} · hash {{ b.fila.hash[:12] }}</p>
+  {% for r in b.fila.riesgos %}<div class="riesgo {{ 'alto' if 'contradicho' in r.tipo or 'retirada' in r.tipo or 'trazabilidad' in r.tipo or 'no_aplicada' in r.tipo or 'no_aplicado' in r.tipo or 'sigue' in r.tipo or 'caida' in r.tipo }}"><b>{{ r.tipo }}</b>{% if r.ref %} [{{ r.ref }}]{% endif %}: {{ r.detalle }}</div>{% endfor %}
+  {% if not b.fila.riesgos %}<p class="small" style="color:var(--ok)">Sin riesgos abiertos.</p>{% endif %}
+
+  {% if b.bajada %}<p><i>{{ b.bajada }}</i></p>{% endif %}
+  {% for p in b.cuerpo|parrafos %}<p>{{ p }}</p>{% endfor %}
+  <p class="fuente">{% if b.fuente_url and b.fuente_url.startswith("http") %}<a href="{{ b.fuente_url }}" target="_blank" rel="noopener">{{ b.fuente_nombre }}</a>{% else %}{{ b.fuente_nombre }}{% endif %} — {{ b.fecha }}</p>
+
+  {% if b.diff and b.diff.cambio %}
+  <details><summary>Cambios respecto de la investigación original</summary>
+    <div class="diff"><p><b>{{ b.diff.titulo|safe }}</b></p>{% if b.diff.bajada %}<p><i>{{ b.diff.bajada|safe }}</i></p>{% endif %}{{ b.diff.cuerpo|safe }}</div>
+  </details>
+  {% endif %}
+
+  <details {{ "open" if b.fila.riesgos }}><summary>Libro de afirmaciones ({{ b.afirmaciones|length }})</summary>
+  <div class="tabla-wrap"><table>
+    <tr><th>id</th><th>afirmación</th><th>estado</th><th>evidencia / nota</th></tr>
+    {% for a in b.afirmaciones %}
+    <tr>
+      <td class="mono small">{{ a.id }}</td>
+      <td>{{ a.texto }}</td>
+      <td><span class="est {{ a.estado_final }}">{{ a.estado_final }}</span></td>
+      <td class="small">{% for e in (a.veredicto.evidencia or []) %}<a href="{{ e.url }}" target="_blank" rel="noopener">fuente {{ loop.index }}</a>{% if e.cita %}: “{{ e.cita[:140] }}”{% endif %}<br>{% endfor %}{{ a.veredicto.nota }}{% if a.veredicto.valor_encontrado %} · encontrado: <b>{{ a.veredicto.valor_encontrado }}</b>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  </details>
+</div>
+{% endfor %}
+</section>
+
+{% if correcciones %}
+<section style="--acento:#60a5fa">
+<h2 class="seccion">Correcciones aplicadas antes de la revisión</h2>
+<div class="tabla-wrap"><table>
+<tr><th>bloque</th><th>antes</th><th>después</th><th>motivo</th></tr>
+{% for c in correcciones %}<tr><td class="mono small">{{ c.bloque }}</td><td><del>{{ c.antes }}</del></td><td><ins>{{ c.despues }}</ins></td><td class="small">{{ c.motivo }}{% if c.ref %} ({{ c.ref }}){% endif %}</td></tr>{% endfor %}
+</table></div>
+</section>
+{% endif %}
+
+{% if contexto_omitido %}
+<section style="--acento:#60a5fa">
+<h2 class="seccion">Contexto que los verificadores encontraron y faltaba</h2>
+<ul>{% for c in contexto_omitido %}<li><span class="mono small">{{ c.bloque }}</span> — {{ c.descripcion }} {% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">fuente</a>{% endif %}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if guardas %}
+<section style="--acento:#94a3b8">
+<h2 class="seccion">Guardas determinísticas disparadas</h2>
+<div class="tabla-wrap"><table>
+<tr><th>etapa</th><th>bloque</th><th>tipo</th><th>severidad</th><th>detalle</th></tr>
+{% for g in guardas %}<tr><td class="mono small">{{ g.etapa }}</td><td class="mono small">{{ g.bloque }}</td><td class="mono small">{{ g.tipo }}</td><td class="est {{ 'contradicho' if g.severidad == 'bloqueante' else 'no_verificable' }}">{{ g.severidad }}</td><td class="small">{{ g.detalle }}</td></tr>{% endfor %}
+</table></div>
+</section>
+{% endif %}
+
+<footer class="small" style="margin-top:40px">Paquete generado por <span class="mono">condor revision {{ numero }}</span>. Vista previa del número como quedaría: <a href="borrador.html">borrador.html</a>.</footer>
+</div>
+</body>
+</html>

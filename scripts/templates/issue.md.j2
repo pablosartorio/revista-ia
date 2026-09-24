@@ -1,0 +1,43 @@
+# {{ meta.titulo_numero or "Cóndor — Número 00 (piloto)" }}
+*Generado: {{ meta.fecha }} · Semana ISO {{ meta.semana_iso }}*
+
+---
+
+## Concepto del número
+{{ meta.concepto_tapa }}
+
+*Nota destacada: {{ meta.nota_destacada }}*
+
+---
+
+{% if feature %}
+## {{ feature.titulo }}
+*{{ feature.bajada }}*
+
+{{ feature.cuerpo }}
+
+{% if feature.fuentes %}
+Fuentes: {% for f in feature.fuentes %}[{{ f.nombre }}]({{ f.url }}){{ ", " if not loop.last }}{% endfor %}
+{% endif %}
+{% if feature.tiene_contradichos %}
+> ⚠ Una o más afirmaciones de esta nota fueron marcadas como no verificadas de forma independiente por el fact-checker. Ver detalle en `data/`.
+{% endif %}
+
+---
+{% endif %}
+
+{% for s in secciones %}
+## {{ s.seccion }}
+### {{ s.item.titulo }}
+{{ s.item.cuerpo }}
+{% if s.item.open_weight %}
+*Licencia: {{ s.item.open_weight }}*
+{% endif %}
+
+→ [{{ s.item.fuente_nombre }}]({{ s.item.fuente_url }}) — {{ s.item.fecha }}
+· fact-check: {{ s.estado_label }}{% if s.factcheck.nota %} ({{ s.factcheck.nota }}){% endif %}
+
+---
+{% endfor %}
+
+*Fuentes consultadas: {{ secciones|length + 1 }} bloques de contenido | Secciones excluidas por fact-check: {{ descartados|length if descartados else 0 }} | Semana ISO: {{ meta.semana_iso }}*

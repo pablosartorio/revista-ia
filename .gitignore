@@ -1,0 +1,9 @@
+# entorno (se recrea con: uv sync)
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# estado transitorio del checkpoint
+data/*.lock
+data/*.tmp

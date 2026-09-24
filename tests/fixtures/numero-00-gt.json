@@ -1,0 +1,70 @@
+{
+  "origen": "Hallazgos del cierre manual del Nº 00 (13/09/2026): un agente de verificación dedicado + revisión humana. No es verdad absoluta: es la mejor verificación disponible de esos hechos.",
+  "casos": [
+    {
+      "id": "oracle_300k_gpus",
+      "bloques": [
+        "hardware",
+        "feature"
+      ],
+      "cifra": "300000",
+      "esperado": "no_publicar_como_confirmado",
+      "descripcion": "La cifra de 300.000 GPUs de Oracle no aparece en ninguna fuente: no puede quedar publicada como dato confirmado."
+    },
+    {
+      "id": "oracle_850mw",
+      "bloques": [
+        "hardware"
+      ],
+      "cifra": "850",
+      "esperado": "mantener_confirmado",
+      "descripcion": "850 MW sí está confirmado (InfotechLead): no debería perderse (falso positivo)."
+    },
+    {
+      "id": "dsewiki_fecha_fin",
+      "bloques": [
+        "safety"
+      ],
+      "texto_malo": "22 de junio",
+      "texto_bueno": "2 de julio",
+      "esperado": "corregir",
+      "descripcion": "El incidente DSEwiki terminó el 2 de julio, no el 22 de junio."
+    },
+    {
+      "id": "nightingale",
+      "bloques": [
+        "safety"
+      ],
+      "texto_bueno": "Nightingale Collective",
+      "esperado": "mantener_confirmado",
+      "descripcion": "El nombre del grupo es correcto: marcarlo como dudoso es un falso positivo (fue la falsa alarma del Nº 00)."
+    },
+    {
+      "id": "openai_niega",
+      "bloques": [
+        "politica"
+      ],
+      "marcadores": [
+        "niega",
+        "nego",
+        "desmient",
+        "rechaza",
+        "no aparece en"
+      ],
+      "esperado": "matizar",
+      "descripcion": "OpenAI niega haber aceptado la cláusula de 'tasas de rechazo mínimas': el bloque debería incluir esa contraparte."
+    },
+    {
+      "id": "feature_duracion",
+      "bloques": [
+        "feature"
+      ],
+      "textos_malos": [
+        "42 días",
+        "seis semanas"
+      ],
+      "esperado": "corregir_o_marcar",
+      "descripcion": "La nota de fondo arrastraba la duración derivada de la fecha equivocada (42 días / seis semanas)."
+    }
+  ]
+}

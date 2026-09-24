@@ -1,0 +1,41 @@
+# Cóndor Nº {{ numero }} — {{ meta.titulo_numero }}
+*{{ meta.fecha }} · Semana ISO {{ meta.semana_iso }}*
+
+![Tapa]({{ tapa_src }})
+
+{{ meta.concepto_tapa }}
+
+---
+{% if feature %}
+
+## Nota de fondo: {{ feature.titulo }}
+{% if feature.bajada %}*{{ feature.bajada }}*{% endif %}
+
+{{ feature.cuerpo }}
+
+{% if feature.fuentes %}Fuentes: {% for f in feature.fuentes %}[{{ f.nombre }}]({{ f.url }}){{ ", " if not loop.last }}{% endfor %}{% endif %}
+
+---
+{% endif %}
+{% for s in secciones %}
+
+## {{ s.seccion }}
+### {{ s.titulo }}
+{% if s.bajada %}*{{ s.bajada }}*
+{% endif %}
+
+{{ s.cuerpo }}
+{% if s.open_weight and s.open_weight != "no aplica" %}
+*Licencia: {{ s.open_weight }}*
+{% endif %}
+
+→ [{{ s.fuente_nombre }}]({{ s.fuente_url }}) — {{ s.fecha }}
+
+---
+{% endfor %}
+
+## Cómo verificamos este número
+{{ verificacion.total }} afirmaciones verificadas de forma independiente; {{ verificacion.conflictos }} conflicto(s) entre notas resueltos por debate.
+{% for estado, n in verificacion.conteo|dictsort %}
+- {{ n }} {{ verificacion.etiquetas.get(estado, estado) }}(s)
+{% endfor %}
