@@ -1,7 +1,7 @@
 export const meta = {
   name: 'condor-numero',
   description: 'Cóndor v2: redacción multi-agente con libro de afirmaciones, reconciliación cruzada, tapas y checkpoint humano',
-  whenToUse: 'Producir un número de Cóndor. args: {numero, fecha_larga, semana_iso, ventana, raiz, modelo_verificador, ciudad_espacio, etapas?}',
+  whenToUse: 'Producir un número de Cóndor. args: {numero, fecha_larga, semana_iso, ventana, raiz, modelo_verificador, ciudad_espacio, etapas?, semilla?}',
   phases: [
     { title: 'Investigación', detail: '9 corresponsalías en paralelo (8 vía web + espacio vía MCP)' },
     { title: 'Nota de fondo', detail: 'feature transversal; en paralelo se verifican las secciones' },
@@ -18,6 +18,11 @@ const N = /^\d+$/.test(String(args.numero || '')) ? String(args.numero).padStart
 if (!N) throw new Error(`args.numero tiene que ser un número de ejemplar (p. ej. "01"); llegó ${JSON.stringify(args.numero)}`)
 const MV = args.modelo_verificador
 const guardas = []
+// args.semilla = {origen, secciones: {clave: SECTION}, feature: FEATURE|null}: investigación ya hecha
+// (p. ej. de una corrida cortada). Los beats que trae no lanzan agente; la verificación corre igual.
+const SEM = args.semilla || null
+const semSec = Object.fromEntries(Object.entries((SEM && SEM.secciones) || {}).filter(([, s]) => s && s.titulo && s.cuerpo && s.fuente_url))
+const semFeat = SEM && SEM.feature && SEM.feature.titulo && SEM.feature.cuerpo ? SEM.feature : null
 
 // Un workflow hijo que falla no tira abajo el número: se reemplaza por un resultado neutro
 // y se deja una guarda bloqueante en los bloques afectados, para que decida el checkpoint.
@@ -94,10 +99,12 @@ NO uses búsqueda web. Usá ToolSearch para cargar las herramientas del servidor
 
 // ------------------------------------------------------------ investigación
 phase('Investigación')
-log(`Cóndor Nº ${N}: lanzando 9 corresponsalías (ventana ${args.ventana}).`)
 const todasBeats = [...BEATS.map((b) => ({ ...b, prompt: beatPrompt(b.seccion, b.tema) })), ESPACIO]
-const beatRaw = await parallel(todasBeats.map((b) => () =>
-  agent(b.prompt, { label: `seccion:${b.clave}`, phase: 'Investigación', schema: SECTION_SCHEMA })))
+const reusados = todasBeats.filter((b) => semSec[b.clave]).map((b) => b.clave)
+log(`Cóndor Nº ${N}: lanzando ${todasBeats.length - reusados.length} corresponsalías (ventana ${args.ventana})${reusados.length ? `; de la semilla (${(SEM && SEM.origen) || 'sin origen'}): ${reusados.join(', ')}` : ''}.`)
+const beatRaw = await parallel(todasBeats.map((b) => () => semSec[b.clave]
+  ? Promise.resolve(semSec[b.clave])
+  : agent(b.prompt, { label: `seccion:${b.clave}`, phase: 'Investigación', schema: SECTION_SCHEMA })))
 const secciones = todasBeats.map((b, i) => beatRaw[i] ? {
   clave: b.clave, tipo: 'seccion', seccion: b.seccion, titulo: beatRaw[i].titulo, bajada: '', cuerpo: beatRaw[i].cuerpo,
   fuente_nombre: beatRaw[i].fuente_nombre, fuente_url: beatRaw[i].fuente_url, fecha: beatRaw[i].fecha,
@@ -134,8 +141,9 @@ Citá en "fuentes" las URLs reales que sostienen tu nota (pueden ser las de los 
 REPORTES:
 ${reportes}`
 
+if (semFeat) log('Nota de fondo: se reusa la de la semilla.')
 let [featRaw, verSec] = await Promise.all([
-  agent(featurePrompt, { label: 'feature:nota-de-fondo', phase: 'Nota de fondo', schema: FEATURE_SCHEMA }).catch(() => null),
+  semFeat ? Promise.resolve(semFeat) : agent(featurePrompt, { label: 'feature:nota-de-fondo', phase: 'Nota de fondo', schema: FEATURE_SCHEMA }).catch(() => null),
   workflow({ scriptPath: `${E}/verificar.workflow.js` }, { bloques: secciones, modelo_verificador: MV }).catch((e) => ({ error: String(e) })),
 ])
 if (!verSec || verSec.error) {
@@ -167,13 +175,22 @@ const rec = await hijo('reconciliacion', 'reconciliar.workflow.js', { bloques, a
   { grupos: [], conflictos: [], resoluciones: [], debates: [], descartados: [], candidatos_deterministicos: [], guardas: [] },
   bloques.map((b) => b.clave))
 guardas.push(...rec.guardas)
+// fallos que editan y comparten afirmaciones con otro fallo: los que consolidar tiene que unir
+const EDITAN = ['corregir', 'retirar', 'matizar']
+const usos = {}
+for (const r of rec.resoluciones) if (EDITAN.includes(r.decision)) for (const id of r.afirmaciones_afectadas) usos[id] = (usos[id] || 0) + 1
+const bloquesCompartidos = uniq(rec.resoluciones.filter((r) => EDITAN.includes(r.decision) && r.afirmaciones_afectadas.some((id) => usos[id] > 1)).flatMap((r) => r.bloques))
+const con = await hijo('consolidacion', 'consolidar.workflow.js', {
+  bloques, afirmaciones, conflictos: rec.conflictos, resoluciones: rec.resoluciones, debates: rec.debates,
+}, { resoluciones: rec.resoluciones, reemplazadas: [], componentes: [], guardas: [] }, bloquesCompartidos)
+guardas.push(...con.guardas)
 const cie = await hijo('cierre', 'cierre.workflow.js', {
-  bloques, afirmaciones, resoluciones: rec.resoluciones, conflictos: rec.conflictos, contexto_omitido,
+  bloques, afirmaciones, resoluciones: con.resoluciones, conflictos: rec.conflictos, contexto_omitido,
 }, {
   bloques, guardas: [], correcciones: [],
   afirmaciones: afirmaciones.map((a) => ({ ...a, estado_final: a.veredicto.estado })),
-  resoluciones: rec.resoluciones.map((r) => ({ ...r, bloques_pendientes: ['corregir', 'retirar', 'matizar'].includes(r.decision) ? r.bloques : [], aplicada: false })),
-}, uniq([...rec.resoluciones.filter((r) => ['corregir', 'retirar', 'matizar'].includes(r.decision)).flatMap((r) => r.bloques), ...contexto_omitido.map((c) => c.bloque)]))
+  resoluciones: con.resoluciones.map((r) => ({ ...r, bloques_pendientes: EDITAN.includes(r.decision) ? r.bloques : [], aplicada: false })),
+}, uniq([...con.resoluciones.filter((r) => EDITAN.includes(r.decision)).flatMap((r) => r.bloques), ...contexto_omitido.map((c) => c.bloque)]))
 guardas.push(...cie.guardas)
 const cierre = Object.fromEntries(cie.bloques.map((b) => [b.clave, { titulo: b.titulo, bajada: b.bajada, cuerpo: b.cuerpo }]))
 
@@ -187,7 +204,8 @@ const ESTILO_SCHEMA = {
   },
   required: ['bloques', 'observaciones'],
 }
-const nombresProtegidos = cie.afirmaciones.filter((a) => ['nombre', 'atribucion'].includes(a.tipo) && a.estado_final !== 'retirado').map((a) => a.valor)
+// un nombre corregido o retirado conserva el valor viejo en `valor`: no hay que protegerlo
+const nombresProtegidos = cie.afirmaciones.filter((a) => ['nombre', 'atribucion'].includes(a.tipo) && !['retirado', 'corregido'].includes(a.estado_final)).map((a) => a.valor)
 const estilo = await agent(`Sos corrector/a de estilo de Cóndor. Línea editorial: ${LINEA}
 
 Recibís el número completo, ya verificado y corregido. Homogeneizá tono, longitud de párrafo, nombres de empresas/modelos según la línea editorial, y sacá lenguaje marketinero. PROHIBIDO: cambiar, agregar, quitar o redondear cifras y fechas; cambiar nombres propios o atribuciones ("X reveló", "según Y"); agregar información. Si algo te parece factualmente raro, no lo toques: anotalo en observaciones. Devolvé TODOS los bloques con su clave exacta; si un bloque no necesita cambios, devolvelo igual.
@@ -201,7 +219,9 @@ const bloquesFinales = cie.bloques.map((b) => {
     guardas.push({ etapa: 'estilo', bloque: b.clave, tipo: 'sin_edicion', severidad: 'aviso', detalle: 'el corrector no devolvió este bloque; queda la versión de cierre' })
     return b
   }
-  const antes = textoBloque(b), despues = textoBloque(e)
+  // se compara contra lo que se publicaría: las secciones no publican bajada, así que la del corrector no cuenta
+  const editado = { ...b, titulo: e.titulo, bajada: b.tipo === 'feature' ? e.bajada : (b.bajada || ''), cuerpo: e.cuerpo }
+  const antes = textoBloque(b), despues = textoBloque(editado)
   const problemas = []
   if (!mismoMultiset(nums(antes), nums(despues))) problemas.push('cambió cifras o fechas')
   const ratio = despues.length / Math.max(1, antes.length)
@@ -212,7 +232,7 @@ const bloquesFinales = cie.bloques.map((b) => {
     guardas.push({ etapa: 'estilo', bloque: b.clave, tipo: 'edicion_rechazada', severidad: 'aviso', detalle: `se descartó la corrección de estilo (${problemas.join('; ')}); queda la versión de cierre` })
     return b
   }
-  return { ...b, titulo: e.titulo, bajada: b.tipo === 'feature' ? e.bajada : (b.bajada || ''), cuerpo: e.cuerpo }
+  return editado
 })
 
 // ------------------------------------------------------------ dirección de arte
@@ -240,7 +260,8 @@ const finales = cie.afirmaciones
 // Mismo criterio que riesgos_bloque() del checkpoint: un bloque con cualquiera de estos riesgos
 // no puede ser nota destacada ni aportar el dato ancla ni una línea de tapa.
 const ESTADOS_RIESGO = ['no_verificable', 'contradicho', 'sin_consenso', 'no_aplicado']
-const conFallo = new Set(cie.resoluciones.map((r) => r.conflicto_id))
+// un conflicto está resuelto si tiene fallo propio o si quedó cubierto por uno consolidado
+const conFallo = new Set(cie.resoluciones.flatMap((r) => [r.conflicto_id, ...(r.conflictos_cubiertos || [])]))
 const riesgosas = new Set([
   ...finales.filter((a) => ESTADOS_RIESGO.includes(a.estado_final)).map((a) => a.bloque),
   ...cie.resoluciones.flatMap((r) => r.decision === 'sin_consenso' ? r.bloques : (r.bloques_pendientes || [])),
@@ -291,6 +312,7 @@ return {
     semana_iso: args.semana_iso,
     ventana: args.ventana,
     modelo_verificador: MV,
+    semilla: SEM ? { origen: SEM.origen || '', beats_reusados: reusados, feature_reusada: !!semFeat } : null,
   },
   bloques: bloquesFinales,
   versiones: { investigacion, cierre },
@@ -299,6 +321,7 @@ return {
   conflictos: rec.conflictos,
   resoluciones: cie.resoluciones,
   debates: rec.debates,
+  consolidacion: { componentes: con.componentes, reemplazadas: con.reemplazadas },
   descartados: rec.descartados,
   candidatos_deterministicos: rec.candidatos_deterministicos,
   correcciones: cie.correcciones,

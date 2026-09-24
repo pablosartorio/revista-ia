@@ -1,9 +1,9 @@
 """Normalización de cifras.
 
-Es el espejo en Python de `canonNum`/`nums` de los scripts de Workflow
-(`pipeline/etapas/_comun.js` documenta la versión JS). Las dos implementaciones
-tienen que dar el mismo resultado: las guardas del workflow y las del checkpoint
-comparan cifras con esta misma regla.
+Es el espejo en Python de `canonNum`/`nums`/`significativa`/`sinIds`, que están copiados
+en cada `.workflow.js` de `pipeline/` (los workflows no pueden importar módulos). Las
+implementaciones tienen que dar el mismo resultado: las guardas del workflow y las del
+checkpoint comparan cifras con esta misma regla (`tests/test_paridad_js.py` lo controla).
 
 Regla:
 - "300.000" / "300,000" (agrupación de miles)  -> "300000"
@@ -22,6 +22,8 @@ _MILES_COMA = re.compile(r"[0-9]{1,3}(?:,[0-9]{3})+")
 _MIXTO_ES = re.compile(r"([0-9]{1,3}(?:\.[0-9]{3})+),([0-9]+)")
 _MIXTO_EN = re.compile(r"([0-9]{1,3}(?:,[0-9]{3})+)\.([0-9]+)")
 _DECIMAL = re.compile(r"([0-9]+)[.,]([0-9]+)")
+_MILES = re.compile(r"[0-9]{1,3}(?:[.,][0-9]{3})+")
+_ID_LIBRO = re.compile(r"\b[a-z_]+#[0-9]+\b")
 
 
 def _dec(entero: str, fraccion: str) -> str:
@@ -54,8 +56,15 @@ def multiconjunto(texto: str) -> Counter:
     return Counter(cifras(texto))
 
 
-def es_significativa(c: str) -> bool:
-    """Cifras que vale la pena rastrear: descarta años sueltos y enteros chicos."""
+def es_significativa(token: str) -> bool:
+    """Cifras que vale la pena rastrear: descarta años sueltos y enteros chicos.
+
+    Recibe el token crudo o ya canónico. Con agrupación de miles ("2.000", "1,950") nunca
+    es un año: hay que decidirlo antes de `canon`, que pierde el separador.
+    """
+    if _MILES.fullmatch(token):
+        return True
+    c = canon(token)
     if "." in c:
         return True
     n = int(re.match(r"[0-9]+", c).group())  # como parseInt de JS: "10,11,12" -> 10
@@ -65,7 +74,12 @@ def es_significativa(c: str) -> bool:
 
 
 def significativas(texto: str) -> set[str]:
-    return {c for c in cifras(texto) if es_significativa(c)}
+    return {canon(t) for t in _TOKEN.findall(texto or "") if es_significativa(t)}
+
+
+def quitar_ids(texto: str) -> str:
+    """Saca los ids del libro de afirmaciones ("feature#17") que los jueces citan en su prosa."""
+    return _ID_LIBRO.sub(" ", texto or "")
 
 
 def normalizar_texto(s: str) -> str:

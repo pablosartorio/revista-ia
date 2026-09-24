@@ -19,8 +19,22 @@ function canonNum(t) {
   return t
 }
 function nums(s) { return ((s || '').match(/\d+(?:[.,]\d+)*/g) || []).map(canonNum) }
-function significativa(c) { if (c.includes('.')) return true; const n = parseInt(c, 10); return !(n >= 1900 && n <= 2100) && n >= 10 }
-function sig(s) { return new Set(nums(s).filter(significativa)) }
+// recibe el token crudo o ya canónico; con agrupación de miles ("2.000", "1,950") nunca es un año
+function significativa(t) {
+  if (/^\d{1,3}([.,]\d{3})+$/.test(t)) return true
+  const c = canonNum(t)
+  if (c.includes('.')) return true
+  const n = parseInt(c, 10); return !(n >= 1900 && n <= 2100) && n >= 10
+}
+function sig(s) { return new Set(((s || '').match(/\d+(?:[.,]\d+)*/g) || []).filter(significativa).map(canonNum)) }
+// los jueces citan ids del libro ("feature#17") en su prosa: esos números no son cifras
+function sinIds(s) { return (s || '').replace(/\b[a-z_]+#\d+\b/g, ' ') }
+// cifras de una afirmación: las del valor que están en su cita (la cita puede traer datos ajenos)
+function cifrasAf(a) {
+  const enCita = sig(a.cita_textual)
+  const propias = [...sig(a.valor)].filter((c) => enCita.has(c))
+  return new Set(propias.length ? propias : enCita)
+}
 function norm(s) {
   return (s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
 }
@@ -54,7 +68,9 @@ const cifrasSecciones = new Set(secciones.flatMap((b) => [...sig(textoBloque(b))
 for (const f of features) {
   for (const c of sig(textoBloque(f))) {
     if (cifrasSecciones.has(c)) continue
-    const ids = afirmaciones.filter((a) => a.bloque === f.clave && nums(a.cita_textual).includes(c)).map((a) => a.id)
+    const delBloque = afirmaciones.filter((a) => a.bloque === f.clave)
+    let ids = delBloque.filter((a) => cifrasAf(a).has(c)).map((a) => a.id)
+    if (!ids.length) ids = delBloque.filter((a) => nums(a.cita_textual).includes(c)).map((a) => a.id)
     candidatos.push({
       tipo: 'huerfana', afirmaciones: ids, bloques: [f.clave], cifras: [c],
       descripcion: `la nota de fondo usa la cifra ${c} que no aparece en ninguna sección: "…${fragmentoCifra(textoBloque(f), c)}…"`,
@@ -66,7 +82,7 @@ for (let i = 0; i < afirmaciones.length; i++) {
   for (let j = i + 1; j < afirmaciones.length; j++) {
     const a = afirmaciones[i], b = afirmaciones[j]
     if (a.bloque === b.bloque) continue
-    const cifrasComunes = [...sig(a.cita_textual)].filter((c) => sig(b.cita_textual).has(c))
+    const cifrasComunes = [...cifrasAf(a)].filter((c) => cifrasAf(b).has(c))
     const entidadComun = [...tokens(a.entidad)].some((t) => tokens(b.entidad).has(t))
     if (!cifrasComunes.length || !entidadComun) continue
     gruposDet.push({ afirmaciones: [a.id, b.id], descripcion: `${a.entidad}: ${cifrasComunes.join(', ')}` })
@@ -241,8 +257,8 @@ const RULING_SCHEMA = {
   type: 'object',
   properties: {
     decision: { type: 'string', enum: ['mantener', 'corregir', 'retirar', 'matizar', 'sin_consenso'] },
-    valor_correcto: { type: 'string' },
-    redaccion_sugerida: { type: 'string', description: 'una oración lista para reemplazar o agregar (vacía si mantener)' },
+    valor_correcto: { type: 'string', description: 'SÓLO el dato correcto, corto, sin prosa, sin explicación y sin ids (p. ej. "2 de julio de 2026", "17.000 ediciones"); vacío si no es corregir. La explicación va en razonamiento' },
+    redaccion_sugerida: { type: 'string', description: 'una oración lista para reemplazar o agregar (vacía si mantener); sin ids de afirmaciones' },
     afirmaciones_afectadas: { type: 'array', items: { type: 'string' } },
     confianza: { type: 'string', enum: ['alta', 'media', 'baja'] },
     razonamiento: { type: 'string' },
@@ -273,7 +289,7 @@ const debatido = await pipeline(
     const alegato = (nombre, x) => x
       ? `${nombre} sostiene "${x.valor_sostenido}" (sustento encontrado: ${x.encontre_sustento}): ${x.argumento}\nEvidencia: ${(x.evidencia || []).map((e) => `${e.url} — "${e.cita}"`).join(' | ') || 'ninguna'}`
       : `${nombre}: no respondió.`
-    return agent(`Sos JUEZ/A de verificación de una revista técnica. Decidís con la evidencia presentada; podés hacer como máximo UN WebFetch para comprobar que una cita dudosa existe de verdad.\n\n${contextoConflicto(c)}\n\n${alegato('DEFENSOR', def)}\n\n${alegato('ESCÉPTICO', esc)}\n\nReglas de decisión:\n- mantener: hay evidencia leída que sostiene el dato tal como está publicado.\n- corregir: la evidencia indica otro valor. Dá valor_correcto y una redaccion_sugerida.\n- retirar: nadie encontró sustento para el dato. Un dato sin fuente no se publica.\n- matizar: el dato está sustentado pero falta contexto o atribución ("según X"), o la parte involucrada lo niega. Dá la redaccion_sugerida.\n- sin_consenso: SÓLO si hay evidencia fuerte y contradictoria en ambos sentidos. Pasa a decisión humana.\nafirmaciones_afectadas: los ids a los que aplica tu decisión — si el mismo dato aparece en varios bloques (sección y nota de fondo), incluí todos para que se corrija en todos lados.`,
+    return agent(`Sos JUEZ/A de verificación de una revista técnica. Decidís con la evidencia presentada; podés hacer como máximo UN WebFetch para comprobar que una cita dudosa existe de verdad.\n\n${contextoConflicto(c)}\n\n${alegato('DEFENSOR', def)}\n\n${alegato('ESCÉPTICO', esc)}\n\nReglas de decisión:\n- mantener: hay evidencia leída que sostiene el dato tal como está publicado.\n- corregir: la evidencia indica otro valor. Dá valor_correcto (sólo el dato, corto: "2 de julio de 2026", no una explicación) y una redaccion_sugerida.\n- retirar: nadie encontró sustento para el dato. Un dato sin fuente no se publica.\n- matizar: el dato está sustentado pero falta contexto o atribución ("según X"), o la parte involucrada lo niega. Dá la redaccion_sugerida.\n- sin_consenso: SÓLO si hay evidencia fuerte y contradictoria en ambos sentidos. Pasa a decisión humana.\nafirmaciones_afectadas: los ids a los que aplica tu decisión — si el mismo dato aparece en varios bloques (sección y nota de fondo), incluí todos para que se corrija en todos lados.`,
       { label: `juez:${c.id}`, phase: 'Fallo', schema: RULING_SCHEMA }).then((r) => ({ c, def, esc, r }))
   },
 )

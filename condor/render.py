@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .estado import (
     ESTADOS_RIESGO, ErrorCheckpoint, candidatos_tapa, cargar, cargar_revision, dir_salida, estado_final,
-    hash_archivo, resumen, revision_vacia,
+    hash_archivo, indice_resoluciones, resumen, revision_vacia,
 )
 
 PLANTILLAS = Path(__file__).resolve().parent / "templates"
@@ -140,7 +140,8 @@ def render_borrador(numero: str) -> list[Path]:
         todos=[dict(b, fila=filas[b["clave"]], diff=diffs.get(b["clave"])) for b in
                ([ctx["feature"]] if ctx["feature"] else []) + ctx["secciones"]],
         conflictos=datos.get("conflictos", []),
-        resoluciones={r["conflicto_id"]: r for r in datos.get("resoluciones", [])},
+        resoluciones=indice_resoluciones(datos),
+        reemplazadas={r["conflicto_id"]: r for r in (datos.get("consolidacion") or {}).get("reemplazadas", [])},
         debates={d["conflicto_id"]: d for d in datos.get("debates", [])},
         correcciones=datos.get("correcciones", []),
         guardas=datos.get("guardas", []),

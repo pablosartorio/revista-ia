@@ -19,8 +19,22 @@ function canonNum(t) {
   return t
 }
 function nums(s) { return ((s || '').match(/\d+(?:[.,]\d+)*/g) || []).map(canonNum) }
-function significativa(c) { if (c.includes('.')) return true; const n = parseInt(c, 10); return !(n >= 1900 && n <= 2100) && n >= 10 }
-function sig(s) { return new Set(nums(s).filter(significativa)) }
+// recibe el token crudo o ya canónico; con agrupación de miles ("2.000", "1,950") nunca es un año
+function significativa(t) {
+  if (/^\d{1,3}([.,]\d{3})+$/.test(t)) return true
+  const c = canonNum(t)
+  if (c.includes('.')) return true
+  const n = parseInt(c, 10); return !(n >= 1900 && n <= 2100) && n >= 10
+}
+function sig(s) { return new Set(((s || '').match(/\d+(?:[.,]\d+)*/g) || []).filter(significativa).map(canonNum)) }
+// los jueces citan ids del libro ("feature#17") en su prosa: esos números no son cifras
+function sinIds(s) { return (s || '').replace(/\b[a-z_]+#\d+\b/g, ' ') }
+// cifras de una afirmación: las del valor que están en su cita (la cita puede traer datos ajenos)
+function cifrasAf(a) {
+  const enCita = sig(a.cita_textual)
+  const propias = [...sig(a.valor)].filter((c) => enCita.has(c))
+  return new Set(propias.length ? propias : enCita)
+}
 function norm(s) {
   return (s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[“”«»"„]/g, '"')
     .replace(/[‘’´`]/g, "'").replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase()
@@ -156,7 +170,8 @@ function normalizarAfirmaciones(b, ext, desde, guardas) {
 }
 
 function cifrasSinCubrir(b, claims) {
-  const cubiertas = new Set(claims.flatMap((c) => nums(c.cita_textual + ' ' + c.valor)))
+  // una cifra la cubre la afirmación cuyo valor la tiene, no cualquiera que la arrastre en la cita
+  const cubiertas = new Set(claims.flatMap((c) => [...cifrasAf(c)]))
   return [...sig(textoBloque(b))].filter((c) => !cubiertas.has(c))
 }
 

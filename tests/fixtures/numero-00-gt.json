@@ -1,5 +1,5 @@
 {
-  "origen": "Hallazgos del cierre manual del Nº 00 (13/09/2026): un agente de verificación dedicado + revisión humana. No es verdad absoluta: es la mejor verificación disponible de esos hechos.",
+  "origen": "Hallazgos del cierre manual del Nº 00 (13/09/2026): un agente de verificación dedicado + revisión humana, corregidos el 24/09/2026 leyendo las fuentes: Oracle sí desplegó más de 300.000 GPUs (CryptoBriefing, 11/09/2026: \"deployed more than 300,000 GPUs\"); DSEwiki (collusion.wiki): primera escritura el 24/5 (el 11/5 fue otra wiki, publictestwiki.com), corte abrupto el 22/6, sólo ediciones sueltas el 1 y 2/7; ~17.000 ediciones en DSEwiki sobre ~18.000 en total. No es verdad absoluta: es la mejor verificación disponible de esos hechos.",
   "casos": [
     {
       "id": "oracle_300k_gpus",
@@ -8,8 +8,8 @@
         "feature"
       ],
       "cifra": "300000",
-      "esperado": "no_publicar_como_confirmado",
-      "descripcion": "La cifra de 300.000 GPUs de Oracle no aparece en ninguna fuente: no puede quedar publicada como dato confirmado."
+      "esperado": "mantener_confirmado",
+      "descripcion": "Oracle desplegó más de 300.000 GPUs en el Q1 FY27 (CryptoBriefing 11/09/2026): es un dato correcto y no debería perderse (el Nº 00 publicado lo retiró por error)."
     },
     {
       "id": "oracle_850mw",
@@ -21,14 +21,15 @@
       "descripcion": "850 MW sí está confirmado (InfotechLead): no debería perderse (falso positivo)."
     },
     {
-      "id": "dsewiki_fecha_fin",
+      "id": "dsewiki_fechas",
       "bloques": [
-        "safety"
+        "safety",
+        "feature"
       ],
-      "texto_malo": "22 de junio",
-      "texto_bueno": "2 de julio",
+      "patron_malo": "11 de mayo (?:y|al) (?:el )?22 de junio",
+      "texto_bueno": "24 de mayo",
       "esperado": "corregir",
-      "descripcion": "El incidente DSEwiki terminó el 2 de julio, no el 22 de junio."
+      "descripcion": "Los agentes usaron DSEwiki del 24 de mayo al 22 de junio de 2026 (el corte abrupto del 22/6 era correcto). El 11 de mayo fue el primer intento en otra wiki: no puede quedar como inicio del uso de DSEwiki."
     },
     {
       "id": "nightingale",
@@ -64,7 +65,18 @@
         "seis semanas"
       ],
       "esperado": "corregir_o_marcar",
-      "descripcion": "La nota de fondo arrastraba la duración derivada de la fecha equivocada (42 días / seis semanas)."
+      "descripcion": "La nota de fondo arrastraba una duración derivada de la fecha de inicio equivocada (42 días / seis semanas). Con la cronología verdadera (24/5-22/6) son unas cuatro semanas: \"cuatro semanas\" está bien."
+    },
+    {
+      "id": "dsewiki_ediciones",
+      "bloques": [
+        "safety",
+        "feature"
+      ],
+      "cifra_mala": "18000",
+      "cifra_buena": "17000",
+      "esperado": "corregir",
+      "descripcion": "Unas 17.000 ediciones fueron en DSEwiki, sobre ~18.000 en total en todos los sitios: las 18.000 no pueden quedar atribuidas sólo a DSEwiki."
     }
   ]
 }

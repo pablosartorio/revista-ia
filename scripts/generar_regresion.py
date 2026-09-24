@@ -4,9 +4,14 @@ El fixture es el Nº 00 TAL COMO LO ESCRIBIÓ la redacción v1 (antes de la corr
 del 13/09), tomado de data/raw_by_label.json. Se embebe en el script del workflow para no
 transcribirlo a mano (los workflows no tienen acceso a disco).
 
-Uso: uv run python scripts/generar_regresion.py
+Con --desde-cierre genera en cambio pipeline/regresion-00-cierre.workflow.js: una regresión
+barata (~12 agentes) que reusa el libro de afirmaciones, los conflictos, los fallos y los
+debates de una corrida completa (data/regresion-00.json) y corre sólo consolidar → cierre.
+
+Uso: uv run python scripts/generar_regresion.py [--desde-cierre [corrida.json]]
 """
 import json
+import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -36,5 +41,55 @@ def main():
     print("ok")
 
 
+# lo que agregó el cierre de la corrida anterior: se descarta para volver a correrlo
+_DE_CIERRE_AF = ("estado_final", "resolucion", "valor_final")
+_DE_CIERRE_RES = ("bloques_pendientes", "aplicada")
+
+
+def desde_cierre(corrida: Path):
+    res = json.loads(corrida.read_text(encoding="utf-8"))
+    semilla = {
+        "origen": f"{corrida.relative_to(RAIZ)} (consolidar + cierre sobre su libro, conflictos, fallos y debates)",
+        "bloques": res["bloques_originales"],
+        "afirmaciones": [{k: v for k, v in a.items() if k not in _DE_CIERRE_AF} for a in res["afirmaciones"]],
+        "conflictos": res["conflictos"],
+        "resoluciones": [{k: v for k, v in r.items() if k not in _DE_CIERRE_RES} for r in res["resoluciones"]],
+        "debates": res["debates"],
+        "contexto_omitido": res["contexto_omitido"],
+    }
+    script = f"""export const meta = {{
+  name: 'condor-regresion-00-cierre',
+  description: 'Regresión barata de Cóndor v2.1 sobre el Nº 00: consolidar → cierre con los fallos de una corrida completa',
+  phases: [{{ title: 'Regresión', detail: 'consolidar → cierre sobre el libro y los fallos guardados' }}],
+}}
+
+// generado por scripts/generar_regresion.py --desde-cierre — no editar a mano
+const S = {json.dumps(semilla, ensure_ascii=False)}
+const E = `${{args.raiz}}/pipeline/etapas`
+phase('Regresión')
+log(`Regresión desde el cierre: ${{S.resoluciones.length}} fallos, ${{S.afirmaciones.length}} afirmaciones (${{S.origen}}).`)
+const con = await workflow({{ scriptPath: `${{E}}/consolidar.workflow.js` }}, {{ bloques: S.bloques, afirmaciones: S.afirmaciones, conflictos: S.conflictos, resoluciones: S.resoluciones, debates: S.debates }})
+const cie = await workflow({{ scriptPath: `${{E}}/cierre.workflow.js` }}, {{ bloques: S.bloques, afirmaciones: S.afirmaciones, resoluciones: con.resoluciones, conflictos: S.conflictos, contexto_omitido: S.contexto_omitido }})
+return {{
+  bloques_originales: S.bloques,
+  bloques: cie.bloques,
+  afirmaciones: cie.afirmaciones,
+  contexto_omitido: S.contexto_omitido,
+  grupos: [], conflictos: S.conflictos, resoluciones: cie.resoluciones, debates: S.debates,
+  consolidacion: {{ componentes: con.componentes, reemplazadas: con.reemplazadas }},
+  descartados: [], candidatos_deterministicos: [],
+  correcciones: cie.correcciones,
+  guardas: [...con.guardas, ...cie.guardas],
+}}
+"""
+    destino = RAIZ / "pipeline/regresion-00-cierre.workflow.js"
+    destino.write_text(script, encoding="utf-8")
+    print(f"ok: {destino.relative_to(RAIZ)} ({len(script) // 1024} KB)")
+
+
 if __name__ == "__main__":
-    main()
+    if "--desde-cierre" in sys.argv:
+        resto = sys.argv[sys.argv.index("--desde-cierre") + 1:]
+        desde_cierre(Path(resto[0]).resolve() if resto else RAIZ / "data/regresion-00.json")
+    else:
+        main()

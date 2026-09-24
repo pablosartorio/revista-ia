@@ -31,7 +31,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import DATA, OUTPUT
-from .numeros import normalizar_texto, significativas
+from .numeros import normalizar_texto, quitar_ids, significativas
 
 VERSION_DATOS = 2
 
@@ -161,6 +161,31 @@ def estado_final(afirmacion: dict) -> str:
     return afirmacion.get("estado_final") or afirmacion.get("veredicto", {}).get("estado", "no_verificable")
 
 
+def cifras_afirmacion(a: dict) -> set[str]:
+    """Cifras de una afirmación: las de su valor que están en la cita (la cita puede traer datos ajenos).
+
+    Mismo criterio que `cifrasAf` de los workflows.
+    """
+    en_cita = significativas(a.get("cita_textual", ""))
+    propias = significativas(a.get("valor", "")) & en_cita
+    return propias or en_cita
+
+
+def _cifras_correccion(r: dict) -> set[str]:
+    """Cifras que trae un fallo, sin los ids del libro ("feature#17") que el juez cita en la prosa."""
+    return significativas(quitar_ids(f"{r.get('valor_correcto', '')} {r.get('redaccion_sugerida', '')}"))
+
+
+def indice_resoluciones(datos: dict) -> dict[str, dict]:
+    """Conflicto -> resolución que lo resuelve: la propia o la consolidada que lo cubre."""
+    indice: dict[str, dict] = {}
+    for r in datos.get("resoluciones", []):
+        indice[r["conflicto_id"]] = r
+        for cid in r.get("conflictos_cubiertos") or []:
+            indice.setdefault(cid, r)
+    return indice
+
+
 def clave_riesgo(r: dict) -> str:
     """Identidad de un riesgo aceptado: tipo, referencia y un resumen de su contenido.
 
@@ -201,7 +226,7 @@ def riesgos_bloque(datos: dict, clave: str, retirados: frozenset | set = frozens
                     "detalle": f"la afirmación retirada sigue en el texto: {a['cita_textual']!r}",
                 })
 
-    resoluciones = {r["conflicto_id"]: r for r in datos.get("resoluciones", [])}
+    resoluciones = indice_resoluciones(datos)
     for c in datos.get("conflictos", []):
         if clave not in c.get("bloques", []):
             continue
@@ -221,7 +246,7 @@ def riesgos_bloque(datos: dict, clave: str, retirados: frozenset | set = frozens
     for r in datos.get("resoluciones", []):
         if clave not in r.get("bloques", []) or r.get("decision") not in ("retirar", "corregir"):
             continue
-        nuevas = significativas(f"{r.get('valor_correcto', '')} {r.get('redaccion_sugerida', '')}")
+        nuevas = _cifras_correccion(r)
         siguen = sorted(set(r.get("cifras") or []) & cifras_propias - nuevas)
         if siguen:
             riesgos.append({
@@ -284,7 +309,7 @@ def riesgos_bloque(datos: dict, clave: str, retirados: frozenset | set = frozens
             permitidas |= significativas(corr.get("despues", ""))
     for r in datos.get("resoluciones", []):
         if clave in r.get("bloques", []):
-            permitidas |= significativas(f"{r.get('valor_correcto', '')} {r.get('redaccion_sugerida', '')}")
+            permitidas |= _cifras_correccion(r)
     for ctx in datos.get("contexto_omitido", []):
         if ctx.get("bloque") == clave:
             permitidas |= significativas(ctx.get("descripcion", ""))
@@ -330,7 +355,7 @@ def riesgos_tapa(numero: str, datos: dict, ruta_svg: Path, retirados: set[str]) 
     sanas = set()
     for a in datos.get("afirmaciones", []):
         if a.get("bloque") not in retirados and estado_final(a) not in ESTADOS_RIESGO | {"retirado"}:
-            sanas |= significativas(a.get("cita_textual", ""))
+            sanas |= cifras_afirmacion(a)
     en_riesgo = set()
     for a in datos.get("afirmaciones", []):
         if a.get("bloque") not in retirados and estado_final(a) in ESTADOS_RIESGO:

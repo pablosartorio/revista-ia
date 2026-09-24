@@ -15,14 +15,30 @@ function canonNum(t) {
   return t
 }
 function nums(s) { return ((s || '').match(/\d+(?:[.,]\d+)*/g) || []).map(canonNum) }
-function significativa(c) { if (c.includes('.')) return true; const n = parseInt(c, 10); return !(n >= 1900 && n <= 2100) && n >= 10 }
-function sig(s) { return new Set(nums(s).filter(significativa)) }
+// recibe el token crudo o ya canónico; con agrupación de miles ("2.000", "1,950") nunca es un año
+function significativa(t) {
+  if (/^\d{1,3}([.,]\d{3})+$/.test(t)) return true
+  const c = canonNum(t)
+  if (c.includes('.')) return true
+  const n = parseInt(c, 10); return !(n >= 1900 && n <= 2100) && n >= 10
+}
+function sig(s) { return new Set(((s || '').match(/\d+(?:[.,]\d+)*/g) || []).filter(significativa).map(canonNum)) }
+// los jueces citan ids del libro ("feature#17") en su prosa: esos números no son cifras
+function sinIds(s) { return (s || '').replace(/\b[a-z_]+#\d+\b/g, ' ') }
+// cifras de una afirmación: las del valor que están en su cita (la cita puede traer datos ajenos)
+function cifrasAf(a) {
+  const enCita = sig(a.cita_textual)
+  const propias = [...sig(a.valor)].filter((c) => enCita.has(c))
+  return new Set(propias.length ? propias : enCita)
+}
 function norm(s) {
   return (s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[“”«»"„]/g, '"')
     .replace(/[‘’´`]/g, "'").replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase()
 }
 function tokens(s) { return new Set(norm(s).split(/[^a-z0-9]+/).filter((t) => t.length >= 4)) }
 function textoBloque(b) { return [b.titulo, b.bajada, b.cuerpo].filter(Boolean).join(' ') }
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }
+function palabra(textoN, v) { return new RegExp(`(^|[^a-z0-9])${escRe(v)}($|[^a-z0-9])`).test(textoN) }
 function uniq(xs) { return [...new Set(xs)] }
 
 const porId = {}
@@ -39,7 +55,7 @@ for (const r of resoluciones) {
   const propias = r.afirmaciones_afectadas.map((id) => porId[id]).filter(Boolean)
   const bloquesDeAf = uniq(propias.map((a) => a.bloque))
   // cifras que el fallo manda sacar o cambiar: las del conflicto (p. ej. una huérfana) y las de las afirmaciones afectadas
-  const cifrasFallo = uniq([...(r.cifras || []), ...propias.flatMap((a) => [...sig(a.cita_textual)])])
+  const cifrasFallo = uniq([...(r.cifras || []), ...propias.flatMap((a) => [...cifrasAf(a)])])
   for (const clave of uniq([...bloquesDeAf, ...r.bloques])) {
     const b = args.bloques.find((x) => x.clave === clave)
     if (!b) continue
@@ -108,20 +124,27 @@ ${errores ? `\nTU INTENTO ANTERIOR NO PASÓ LAS GUARDAS AUTOMÁTICAS. Arreglá e
 Reglas: toda cifra del texto final tiene que estar en el texto original o en las correcciones de arriba (no inventes ni redondees números). Conservá párrafos (separados por línea en blanco). Si la bajada está vacía, devolvela vacía. En "cambios" listá cada modificación con un fragmento corto antes/después y la ref de la corrección.`
 }
 
+// cifras que trae la corrección (sin los ids del libro que los jueces citan en la prosa)
+function deLaCorreccion(acc) { return sig(sinIds(`${acc.valor_correcto} ${acc.redaccion_sugerida}`)) }
+
 function guardar(b, accs, res) {
   const errores = []
+  const original = textoBloque(b)
+  const originalN = norm(original)
   const nuevo = textoBloque(res)
   const nuevoN = norm(nuevo)
   const nuevoSig = sig(nuevo)
   if (!res.cuerpo || res.cuerpo.length < 0.4 * b.cuerpo.length) errores.push('el cuerpo quedó vacío o demasiado recortado')
   const idsAccion = new Set(accs.flatMap((a) => a.afirmaciones.map((x) => x.id)))
   const retenidas = args.afirmaciones.filter((a) => a.bloque === b.clave && !idsAccion.has(a.id))
-  const cifrasRetenidas = new Set(retenidas.flatMap((a) => [...sig(a.cita_textual)]))
-  const permitidas = new Set([...sig(textoBloque(b)), ...accs.flatMap((a) => [...sig(`${a.valor_correcto} ${a.redaccion_sugerida}`)])])
+  const cifrasRetenidas = new Set(retenidas.flatMap((a) => [...cifrasAf(a)]))
+  const permitidas = new Set([...sig(original), ...accs.flatMap((a) => [...deLaCorreccion(a)])])
 
   for (const acc of accs) {
+    const correccion = deLaCorreccion(acc)
+    const textoCorreccionN = norm(sinIds(`${acc.valor_correcto} ${acc.redaccion_sugerida}`))
     for (const a of acc.afirmaciones) {
-      const propias = [...sig(a.cita_textual)].filter((c) => !cifrasRetenidas.has(c) && !sig(`${acc.valor_correcto} ${acc.redaccion_sugerida}`).has(c))
+      const propias = [...cifrasAf(a)].filter((c) => !cifrasRetenidas.has(c) && !correccion.has(c))
       if (acc.tipo === 'retirar') {
         if (nuevoN.includes(norm(a.cita_textual))) errores.push(`la afirmación a retirar sigue textual: "${a.cita_textual}"`)
         const quedan = propias.filter((c) => nuevoSig.has(c))
@@ -130,24 +153,40 @@ function guardar(b, accs, res) {
       if (acc.tipo === 'corregir') {
         const quedan = propias.filter((c) => nuevoSig.has(c))
         if (quedan.length) errores.push(`sigue el valor viejo de ${a.id}: ${quedan.join(', ')}`)
+        if (!sig(a.valor).size) {
+          // valor no numérico (un nombre, "2 de julio"): tiene que desaparecer, o al menos cambiar el fragmento
+          const v = norm(a.valor)
+          if (v.length >= 3 && palabra(originalN, v) && !palabra(textoCorreccionN, v)) {
+            if (palabra(nuevoN, v)) errores.push(`sigue el valor viejo de ${a.id}: "${a.valor}"`)
+          } else if (originalN.includes(norm(a.cita_textual)) && nuevoN.includes(norm(a.cita_textual))) {
+            errores.push(`${a.id}: el fragmento a corregir quedó igual: "${a.cita_textual}"`)
+          }
+        }
       }
     }
     if (acc.tipo === 'retirar' || acc.tipo === 'corregir') {
-      const deLaCorreccion = sig(`${acc.valor_correcto} ${acc.redaccion_sugerida}`)
-      const quedan = (acc.cifras || []).filter((c) => nuevoSig.has(c) && !cifrasRetenidas.has(c) && !deLaCorreccion.has(c))
+      const quedan = (acc.cifras || []).filter((c) => nuevoSig.has(c) && !cifrasRetenidas.has(c) && !correccion.has(c))
       if (quedan.length) errores.push(`${acc.ref}: siguen en el texto cifras que el fallo manda ${acc.tipo === 'retirar' ? 'retirar' : 'corregir'}: ${quedan.join(', ')}`)
     }
     if (acc.tipo === 'corregir' && acc.valor_correcto) {
-      const vc = sig(acc.valor_correcto)
+      // los jueces suelen escribir prosa en valor_correcto (con la cifra vieja adentro): se exigen sólo
+      // las cifras que también están en la redacción sugerida y que no son valores viejos
+      const vc = sig(sinIds(acc.valor_correcto))
+      const rs = sig(sinIds(acc.redaccion_sugerida))
+      const viejas = new Set(acc.afirmaciones.flatMap((a) => [...cifrasAf(a)]))
       if (vc.size) {
-        const faltan = [...vc].filter((c) => !nuevoSig.has(c))
+        const faltan = [...vc].filter((c) => (!rs.size || rs.has(c)) && !viejas.has(c) && !nuevoSig.has(c))
         if (faltan.length) errores.push(`no aparece el valor correcto (${acc.ref}): ${faltan.join(', ')}`)
-      } else if (![...tokens(acc.valor_correcto)].some((t) => nuevoN.includes(t))) {
-        errores.push(`no aparece el valor correcto (${acc.ref}): "${acc.valor_correcto}"`)
+      } else {
+        const nuevosTok = [...tokens(sinIds(acc.valor_correcto))].filter((t) => !tokens(original).has(t))
+        if (nuevosTok.length && !nuevosTok.some((t) => nuevoN.includes(t))) errores.push(`no aparece el valor correcto (${acc.ref}): "${acc.valor_correcto}"`)
       }
     }
-    if (acc.tipo === 'matizar' && !accs.some((x) => x.tipo === 'retirar') && nuevo.length <= textoBloque(b).length - 20) {
-      errores.push(`${acc.ref}: matizar agrega contexto, pero el texto se achicó`)
+    if (acc.tipo === 'matizar') {
+      if (nuevoN === originalN) errores.push(`${acc.ref}: matizar exige agregar el contexto, pero el texto quedó igual`)
+      const nuevosTok = [...tokens(sinIds(acc.redaccion_sugerida))].filter((t) => !tokens(original).has(t))
+      if (nuevosTok.length && !nuevosTok.some((t) => tokens(nuevo).has(t))) errores.push(`${acc.ref}: no aparece nada del contexto a agregar ("${acc.redaccion_sugerida.slice(0, 120)}")`)
+      if (!accs.some((x) => x.tipo === 'retirar') && nuevo.length <= original.length - 20) errores.push(`${acc.ref}: matizar agrega contexto, pero el texto se achicó`)
     }
   }
   const inventadas = [...nuevoSig].filter((c) => !permitidas.has(c))

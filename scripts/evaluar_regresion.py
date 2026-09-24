@@ -4,17 +4,24 @@ Uso:  uv run python scripts/evaluar_regresion.py data/regresion-00.json
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
 from condor.numeros import normalizar_texto, significativas
 
 RAIZ = Path(__file__).resolve().parent.parent
-RIESGO = {"no_verificable", "contradicho", "sin_consenso"}
+# mismo conjunto que ESTADOS_RIESGO de condor/estado.py y de condor.workflow.js
+RIESGO = {"no_verificable", "contradicho", "sin_consenso", "no_aplicado"}
+SANO = {"confirmado", "matizado"}
 
 
 def texto(b: dict) -> str:
     return " ".join(str(b.get(k) or "") for k in ("titulo", "bajada", "cuerpo"))
+
+
+def estados_cifra(afs: list[dict], clave: str, cifra: str) -> set:
+    return {a.get("estado_final") for a in afs if a["bloque"] == clave and cifra in significativas(a.get("cita_textual", ""))}
 
 
 def evaluar(res: dict, gt: dict) -> list[dict]:
@@ -23,48 +30,56 @@ def evaluar(res: dict, gt: dict) -> list[dict]:
     salida = []
     for caso in gt["casos"]:
         veredicto, detalle = "FALLA", ""
-        if caso["id"] == "oracle_300k_gpus":
-            problemas = []
+        if caso["id"] in ("oracle_300k_gpus", "oracle_850mw"):
+            # datos correctos: tienen que seguir publicados y confirmados
+            perdidos, dudosos = [], []
             for clave in caso["bloques"]:
-                if caso["cifra"] in significativas(texto(finales[clave])):
-                    estados = {a.get("estado_final") for a in afs if a["bloque"] == clave and caso["cifra"] in significativas(a.get("cita_textual", ""))}
-                    if not estados or not estados <= RIESGO:
-                        problemas.append(f"{clave}: sigue publicada con estado {sorted(estados) or 'sin afirmación'}")
-                    else:
-                        problemas.append(f"{clave}: sigue en el texto pero marcada {sorted(estados)} (va al checkpoint)")
-            if not problemas:
-                veredicto, detalle = "OK", "retirada del texto en todos los bloques"
-            elif all("va al checkpoint" in p for p in problemas):
-                veredicto, detalle = "PARCIAL", "; ".join(problemas)
+                estados = estados_cifra(afs, clave, caso["cifra"])
+                if caso["cifra"] not in significativas(texto(finales[clave])):
+                    perdidos.append(clave)
+                elif not estados or not estados <= SANO:
+                    dudosos.append(f"{clave}: {sorted(estados) or 'sin afirmación'}")
+            if perdidos:
+                detalle = f"se perdió un dato correcto en {', '.join(perdidos)}"
+            elif dudosos:
+                veredicto, detalle = "PARCIAL", f"presente pero {'; '.join(dudosos)} (falso positivo que va al checkpoint)"
             else:
-                detalle = "; ".join(problemas)
-        elif caso["id"] == "oracle_850mw":
-            clave = caso["bloques"][0]
-            presente = caso["cifra"] in significativas(texto(finales[clave]))
-            estados = {a.get("estado_final") for a in afs if a["bloque"] == clave and caso["cifra"] in significativas(a.get("cita_textual", ""))}
-            if presente and estados and estados <= {"confirmado", "matizado"}:
-                veredicto, detalle = "OK", f"presente, {sorted(estados)}"
-            elif presente:
-                veredicto, detalle = "PARCIAL", f"presente pero {sorted(estados)} (falso positivo que va al checkpoint)"
+                veredicto, detalle = "OK", "presente y confirmado"
+        elif caso["id"] == "dsewiki_fechas":
+            originales = {b["clave"]: b for b in res.get("bloques_originales", [])}
+            malos, sin_bueno = [], []
+            for clave in caso["bloques"]:
+                t = normalizar_texto(texto(finales[clave]))
+                if re.search(caso["patron_malo"], t):
+                    estados = {a.get("estado_final") for a in afs if a["bloque"] == clave
+                               and re.search(caso["patron_malo"], normalizar_texto(a.get("cita_textual", "")))}
+                    malos.append((clave, estados))
+                elif re.search(caso["patron_malo"], normalizar_texto(texto(originales.get(clave, {})))) and caso["texto_bueno"] not in t:
+                    sin_bueno.append(clave)
+            if malos and all(e and e <= RIESGO for _, e in malos):
+                veredicto, detalle = "PARCIAL", "sigue el 11 de mayo como inicio pero marcado " + "; ".join(f"{c}: {sorted(e)}" for c, e in malos)
+            elif malos:
+                detalle = "sigue el 11 de mayo como inicio de DSEwiki: " + "; ".join(f"{c}: {sorted(e) or 'sin afirmación'}" for c, e in malos)
+            elif sin_bueno:
+                veredicto, detalle = "PARCIAL", f"sacó el inicio equivocado pero no puso el 24 de mayo en {', '.join(sin_bueno)}"
             else:
-                detalle = "se perdió un dato correcto"
-        elif caso["id"] == "dsewiki_fecha_fin":
-            t = normalizar_texto(texto(finales["safety"]))
-            malo, bueno = normalizar_texto(caso["texto_malo"]), normalizar_texto(caso["texto_bueno"])
-            if bueno in t and malo not in t:
-                veredicto, detalle = "OK", "corregida a 2 de julio"
-            elif malo in t:
-                estados = {a.get("estado_final") for a in afs if a["bloque"] == "safety" and malo in normalizar_texto(a.get("cita_textual", ""))}
-                if estados and estados <= RIESGO:
-                    veredicto, detalle = "PARCIAL", f"sigue '22 de junio' pero marcada {sorted(estados)}"
-                else:
-                    detalle = f"sigue '22 de junio' con estado {sorted(estados) or 'sin afirmación'}"
+                veredicto, detalle = "OK", "inicio corregido al 24 de mayo"
+        elif caso["id"] == "dsewiki_ediciones":
+            malos = []
+            for clave in caso["bloques"]:
+                sig_t = significativas(texto(finales[clave]))
+                if caso["cifra_mala"] in sig_t and caso["cifra_buena"] not in sig_t:
+                    malos.append((clave, estados_cifra(afs, clave, caso["cifra_mala"])))
+            if not malos:
+                veredicto, detalle = "OK", "17.000 en DSEwiki (o las 18.000 ya no se atribuyen sólo a DSEwiki)"
+            elif all(e and e <= RIESGO for _, e in malos):
+                veredicto, detalle = "PARCIAL", "siguen las 18.000 solas pero marcadas " + "; ".join(f"{c}: {sorted(e)}" for c, e in malos)
             else:
-                veredicto, detalle = "PARCIAL", "sacó la fecha equivocada pero no puso la correcta"
+                detalle = "siguen las 18.000 atribuidas a DSEwiki: " + "; ".join(f"{c}: {sorted(e) or 'sin afirmación'}" for c, e in malos)
         elif caso["id"] == "nightingale":
             t = texto(finales["safety"])
             estados = {a.get("estado_final") for a in afs if a["bloque"] == "safety" and "nightingale" in normalizar_texto(a.get("cita_textual", "") + a.get("valor", ""))}
-            if caso["texto_bueno"] in t and estados and estados <= {"confirmado", "matizado"}:
+            if caso["texto_bueno"] in t and estados and estados <= SANO:
                 veredicto, detalle = "OK", f"se mantiene, {sorted(estados)}"
             elif caso["texto_bueno"] in t:
                 veredicto, detalle = "PARCIAL", f"se mantiene pero {sorted(estados) or 'sin afirmación'} (falsa alarma al checkpoint)"

@@ -104,8 +104,12 @@ uv run condor publicar {{ numero }} --revisor "Tu Nombre"</div>
       {% if d.esceptico and d.esceptico.evidencia %}<br>{% for e in d.esceptico.evidencia %}<a href="{{ e.url }}" target="_blank" rel="noopener">fuente</a> {% endfor %}{% endif %}</div>
   </div>
   {% endif %}
+  {% if r and r.conflicto_id != c.id %}
+  {% set o = reemplazadas.get(c.id) %}
+  <p class="small" style="margin-top:10px"><b>Consolidado en {{ r.conflicto_id }}</b> junto con {{ r.conflictos_cubiertos|reject("equalto", c.id)|join(", ") }}: sus fallos tocaban las mismas afirmaciones.{% if o %} Fallo original de este conflicto: <i>{{ o.decision }}</i>{% if o.valor_correcto %} → {{ o.valor_correcto }}{% endif %}.{% endif %}</p>
+  {% endif %}
   {% if r %}
-  <p style="margin-top:10px"><b>Juez:</b> <span class="est {{ 'confirmado' if r.decision == 'mantener' else ('sin_consenso' if r.decision == 'sin_consenso' else 'corregido') }}">{{ r.decision }}</span> (confianza {{ r.confianza }}){% if r.valor_correcto %} · valor correcto: <b>{{ r.valor_correcto }}</b>{% endif %}<br>{{ r.razonamiento }}</p>
+  <p style="margin-top:10px"><b>Juez{% if r.conflicto_id != c.id %} de consolidación ({{ r.conflicto_id }}){% endif %}:</b> <span class="est {{ 'confirmado' if r.decision == 'mantener' else ('sin_consenso' if r.decision == 'sin_consenso' else 'corregido') }}">{{ r.decision }}</span> (confianza {{ r.confianza }}){% if r.valor_correcto %} · valor correcto: <b>{{ r.valor_correcto }}</b>{% endif %}<br>{{ r.razonamiento }}</p>
   {% if r.bloques_pendientes %}<div class="riesgo alto">La corrección no pudo aplicarse con las guardas en: {{ r.bloques_pendientes|join(", ") }}</div>{% endif %}
   {% else %}
   <div class="riesgo alto">Sin resolución.</div>

@@ -20,7 +20,15 @@ def _extraer_json(texto: str) -> dict:
     return obj
 
 
+def desenvolver(datos: dict) -> dict:
+    """El `.output` de una tarea de Workflow es `{summary, logs, result}`: el número está en `result`."""
+    if "version" not in datos and isinstance(datos.get("result"), dict):
+        return datos["result"]
+    return datos
+
+
 def normalizar(datos: dict) -> dict:
+    datos = desenvolver(datos)
     if datos.get("version") != VERSION_DATOS:
         raise ErrorCheckpoint(f"el resultado no es versión {VERSION_DATOS} (¿es un número del pipeline v1?)")
     numero = str(datos.get("numero", ""))

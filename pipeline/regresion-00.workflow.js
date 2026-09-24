@@ -1,7 +1,7 @@
 export const meta = {
   name: 'condor-regresion-00',
   description: 'Regresión de Cóndor v2 sobre el Nº 00 original: ¿verificación + reconciliación + cierre encuentran los errores conocidos?',
-  phases: [{ title: 'Regresión', detail: 'verificar → reconciliar → cierre sobre el fixture' }],
+  phases: [{ title: 'Regresión', detail: 'verificar → reconciliar → consolidar → cierre sobre el fixture' }],
 }
 
 // generado por scripts/generar_regresion.py — no editar a mano
@@ -12,14 +12,16 @@ phase('Regresión')
 log(`Regresión sobre ${bloques.length} bloques del Nº 00 original.`)
 const ver = await workflow({ scriptPath: `${E}/verificar.workflow.js` }, { bloques, modelo_verificador: args.modelo_verificador })
 const rec = await workflow({ scriptPath: `${E}/reconciliar.workflow.js` }, { bloques, afirmaciones: ver.afirmaciones, modelo_verificador: args.modelo_verificador, max_debates: 8 })
-const cie = await workflow({ scriptPath: `${E}/cierre.workflow.js` }, { bloques, afirmaciones: ver.afirmaciones, resoluciones: rec.resoluciones, conflictos: rec.conflictos, contexto_omitido: ver.contexto_omitido })
+const con = await workflow({ scriptPath: `${E}/consolidar.workflow.js` }, { bloques, afirmaciones: ver.afirmaciones, conflictos: rec.conflictos, resoluciones: rec.resoluciones, debates: rec.debates })
+const cie = await workflow({ scriptPath: `${E}/cierre.workflow.js` }, { bloques, afirmaciones: ver.afirmaciones, resoluciones: con.resoluciones, conflictos: rec.conflictos, contexto_omitido: ver.contexto_omitido })
 return {
   bloques_originales: bloques,
   bloques: cie.bloques,
   afirmaciones: cie.afirmaciones,
   contexto_omitido: ver.contexto_omitido,
   grupos: rec.grupos, conflictos: rec.conflictos, resoluciones: cie.resoluciones, debates: rec.debates,
+  consolidacion: { componentes: con.componentes, reemplazadas: con.reemplazadas },
   descartados: rec.descartados, candidatos_deterministicos: rec.candidatos_deterministicos,
   correcciones: cie.correcciones,
-  guardas: [...ver.guardas, ...rec.guardas, ...cie.guardas],
+  guardas: [...ver.guardas, ...rec.guardas, ...con.guardas, ...cie.guardas],
 }
