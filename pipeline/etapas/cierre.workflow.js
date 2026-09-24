@@ -49,6 +49,7 @@ const guardas = []
 // ------------------------------------------------------------ acciones por bloque
 const acciones = {}
 const sinAncla = []
+const bloquesConAccion = new Map()  // resolución -> bloques donde de verdad hay algo que aplicar
 function sumar(clave, acc) { (acciones[clave] = acciones[clave] || []).push(acc) }
 for (const r of resoluciones) {
   if (!['corregir', 'retirar', 'matizar'].includes(r.decision)) continue
@@ -67,6 +68,11 @@ for (const r of resoluciones) {
       if (!propias.length && !(r.cifras || []).length) sinAncla.push({ r, clave })
       continue  // si el dato tiene ancla en otro bloque, acá no aparece: no hay nada que retirar
     }
+    // un fallo que nombra afirmaciones se aplica donde están ellas (o sus cifras): el conflicto puede
+    // listar otros bloques sólo como contexto, y mandarles la corrección los hace fallar sin motivo
+    if (propias.length && !afs.length && !cifras.length) continue
+    if (!bloquesConAccion.has(r)) bloquesConAccion.set(r, new Set())
+    bloquesConAccion.get(r).add(clave)
     sumar(clave, {
       tipo: r.decision, ref: r.conflicto_id, afirmaciones: afs, cifras,
       valor_correcto: r.valor_correcto, redaccion_sugerida: r.redaccion_sugerida, razonamiento: r.razonamiento,
@@ -261,7 +267,7 @@ for (const r of resoluciones) {
       if (r.decision === 'corregir' && r.valor_correcto) a.valor_final = r.valor_correcto
     }
   }
-  for (const clave of r.bloques) if (fallidos.has(clave) && ['corregir', 'retirar', 'matizar'].includes(r.decision) && !r.bloques_pendientes.includes(clave)) r.bloques_pendientes.push(clave)
+  for (const clave of bloquesConAccion.get(r) || []) if (fallidos.has(clave) && !r.bloques_pendientes.includes(clave)) r.bloques_pendientes.push(clave)
   r.aplicada = r.bloques_pendientes.length === 0
 }
 

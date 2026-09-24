@@ -190,3 +190,22 @@ def test_orquestador_con_semilla_no_relanza_lo_investigado():
     assert "seccion:hardware" not in lanzadas and "seccion:llm" in lanzadas and "feature:nota-de-fondo" not in lanzadas
     assert out["result"]["numero"] == "01"
     assert out["result"]["meta"]["semilla"] == {"origen": "prueba", "beats_reusados": ["hardware"], "feature_reusada": True}
+
+
+def test_fallo_se_aplica_solo_donde_estan_sus_afirmaciones():
+    # C7 del Nº 01: el conflicto listaba politica y espacio, pero el juez matizó sólo politica#1;
+    # mandarle el matiz a espacio lo hacía fallar y arrastraba la corrección propia de espacio (C2)
+    pol = bloque("politica", "El jueves, dos representantes presentaron un proyecto.")
+    esp = bloque("espacio", "El SAOCOM 1B estaba sobre 76,83°S.")
+    afs = [af("politica#1", "el jueves", "El jueves, dos representantes presentaron", tipo="fecha"),
+           af("espacio#2", "76,83°S", "sobre 76,83°S")]
+    c7 = fallo("C7", "matizar", ["politica#1"], ["politica", "espacio"], rs="El jueves 17 de septiembre, dos representantes presentaron un proyecto.")
+    c2 = fallo("C2", "corregir", ["espacio#2"], ["espacio"], vc="77,11°S", rs="El SAOCOM 1B estaba sobre 77,11°S.")
+    out = correr("cierre", {"bloques": [pol, esp], "afirmaciones": afs, "resoluciones": [c7, c2], "conflictos": [], "contexto_omitido": []}, {
+        "cierre:politica": editor(pol, "El jueves 17 de septiembre, dos representantes presentaron un proyecto."),
+        "cierre:espacio": editor(esp, "El SAOCOM 1B estaba sobre 77,11°S."),
+    })
+    res = out["result"]
+    assert not bloqueantes(res), res["guardas"]
+    assert all(r["aplicada"] for r in res["resoluciones"])
+    assert "cierre+:espacio" not in out["labels"]

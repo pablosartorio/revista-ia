@@ -28,3 +28,23 @@ a4569ad6f62eecceb00a0818c5015934a3640bae28014b11bff4e68424fb33c2  etapas/tapa.wo
 abacfd9edd973bf5006405d005b6247ef094286d613b1a136df2f7413bcb4808  etapas/verificar.workflow.js
 ```
 SHA256 del `SHA256SUMS` nuevo: `fe79963e34816af4b953c1c3bc5cff4604fe1e14c03eae5ea081271a8d6e87f3`
+
+## Corrida y publicación (24/09/2026)
+
+- Run `wf_74b3799f-f3a` desde esta copia congelada, con la semilla (8 secciones + nota de fondo; Espacio
+  en vivo): 75 agentes, 0 errores, ~23 min. Resultado en `resultado-wf_74b3799f-f3a.output.json` y
+  journal en `journal-wf_74b3799f-f3a.jsonl`. La semilla llegó idéntica a `semilla-investigacion.json`.
+- 148 afirmaciones (136 confirmadas, 9 matizadas, 1 corregida, 1 no verificable, 1 no aplicada);
+  8 conflictos, 8 fallos, 6 aplicados; sin consolidaciones. Tapa sugerida y elegida: A2.
+- **Bug encontrado** (arreglado en `pipeline/`, no en esta copia): cierre mandaba un fallo a todos los
+  bloques del conflicto aunque el juez nombrara sólo afirmaciones de uno. C7 (matizar `politica#1`)
+  llegó a Espacio, la guarda lo rechazó y el cierre de Espacio falló entero, arrastrando C2
+  (coordenadas del SAOCOM 1B).
+- **Correcciones del checkpoint** (pedidas por el revisor, aplicadas a mano en `data/numero-01.json` y
+  registradas en `correcciones`): Espacio, coordenadas de C2 (77,11°S y 161,63°O) y "hoy jueves" →
+  "jueves 24/09" (el número está fechado el 23/09). Copete de portada escrito a mano: la portada
+  mostraba el `concepto_tapa` (nota interna del director de arte); ahora el pipeline pide un `copete`
+  para lectores y la portada publica sólo ése.
+- Aprobado y publicado por Pablo Sartorio el 24/09/2026 (Espacio y Ciencia y salud con nota).
+- Insumos para un GT del Nº 01: C2/C7 (fallo aplicado fuera de su bloque), "hoy jueves" en Espacio
+  (fecha relativa a la corrida y no al número), `ciencia_salud#5` ("núcleo del acuerdo").

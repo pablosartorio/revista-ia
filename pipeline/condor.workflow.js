@@ -241,7 +241,8 @@ const ART_SCHEMA = {
   type: 'object',
   properties: {
     titulo_numero: { type: 'string' },
-    concepto_tapa: { type: 'string', description: '2-3 líneas: qué conecta al número' },
+    copete: { type: 'string', description: 'bajada de portada PARA LECTORES, 1-2 oraciones en castellano llano: de qué trata el número. Sin jerga interna (claves de bloque, "dato ancla", "brief"), sin cifras que no estén en notas sin riesgo' },
+    concepto_tapa: { type: 'string', description: 'NOTA INTERNA para los ilustradores (no se publica), 2-3 líneas: qué conecta al número' },
     nota_destacada: { type: 'string', description: 'clave del bloque destacado y por qué' },
     notas_diseno: { type: 'string' },
     brief_tapa: {
@@ -254,7 +255,7 @@ const ART_SCHEMA = {
       required: ['concepto', 'metafora_visual', 'paleta', 'composicion', 'evitar', 'dato_ancla_id'],
     },
   },
-  required: ['titulo_numero', 'concepto_tapa', 'nota_destacada', 'notas_diseno', 'brief_tapa'],
+  required: ['titulo_numero', 'copete', 'concepto_tapa', 'nota_destacada', 'notas_diseno', 'brief_tapa'],
 }
 const finales = cie.afirmaciones
 // Mismo criterio que riesgos_bloque() del checkpoint: un bloque con cualquiera de estos riesgos
@@ -278,7 +279,7 @@ ${bloquesFinales.map((b) => `- [${b.clave}] ${b.titulo} — ${(b.cuerpo || '').s
 AFIRMACIONES CONFIRMADAS disponibles como dato ancla para una tapa data-driven (usá el id):
 ${confirmadas.slice(0, 60).map((a) => `${a.id}: ${a.texto} (${a.valor})`).join('\n')}
 
-Decidí: título del número (llamativo, no sensacionalista), concepto de tapa, nota destacada, notas de diseño, y un brief de tapa concreto (metáfora visual dibujable con formas geométricas, paleta, composición, qué evitar — nada de robots genéricos ni logos reales).`,
+Decidí: título del número (llamativo, no sensacionalista), copete de portada para lectores (1-2 oraciones, sin jerga interna), concepto de tapa (nota interna), nota destacada, notas de diseño, y un brief de tapa concreto (metáfora visual dibujable con formas geométricas, paleta, composición, qué evitar — nada de robots genéricos ni logos reales).`,
 { label: 'arte:director', phase: 'Arte', schema: ART_SCHEMA })
 
 let datoAncla = null
@@ -303,6 +304,7 @@ return {
   numero: N,
   meta: {
     titulo_numero: arte ? arte.titulo_numero : `Cóndor Nº ${N}`,
+    copete: arte ? arte.copete : '',
     concepto_tapa: arte ? arte.concepto_tapa : '',
     nota_destacada: arte ? arte.nota_destacada : '',
     notas_diseno: arte ? arte.notas_diseno : '',

@@ -43,14 +43,13 @@ Plan vigente: `plan-resvista-01.md`. **Sesión A hecha** (Fases 1-3):
 - `runs/numero-01/pipeline/` recongelado (ver `runs/numero-01/NOTA.md`); semilla en
   `runs/numero-01/semilla-investigacion.json` (8 secciones + nota de fondo; Espacio en vivo).
 
-**Próximo: sesión B (nueva, sin otros workflows)** — Fase 4 del plan: Workflow con
-`scriptPath=/home/psartorio/revista-ia/runs/numero-01/pipeline/condor.workflow.js` y args
-`{numero:"01", fecha_larga:"23 de septiembre de 2026", semana_iso:"2026-W39",
-ventana:"14 al 23 de septiembre de 2026", raiz:"/home/psartorio/revista-ia",
-modelo_verificador:"sonnet", ciudad_espacio:"Bariloche",
-etapas:"/home/psartorio/revista-ia/runs/numero-01/pipeline/etapas", semilla:<contenido de
-runs/numero-01/semilla-investigacion.json>}`. Seguir por `journal.jsonl`. Después:
-`uv run condor importar <.output>` → `uv run condor revision 01` → checkpoint humano (Pablo).
+**Nº 01 publicado** (24/09/2026, `output/numero-01/index.html`): run `wf_74b3799f-f3a`, 75 agentes;
+retro en `runs/numero-01/NOTA.md`. Después de la corrida se arreglaron en `pipeline/` (no en la copia
+congelada del Nº 01): cierre aplica cada fallo sólo en los bloques de sus afirmaciones (bug C7→Espacio)
+y el director de arte escribe un `copete` para lectores (la portada ya no publica `concepto_tapa`).
+93 tests.
 
-Pendiente aparte: D1 (restaurar Oracle >300.000 GPUs en el Nº 00 publicado: decisión humana por el
-checkpoint); dimensiones "checkpoint" y "workflows" de la revisión adversarial; `plan.md` v2.1.
+Pendiente: repensar el nombre de la revista (hoy "Cóndor"; al cambiarlo, dejarlo en una sola
+constante); D1 (restaurar Oracle >300.000 GPUs en el Nº 00 publicado: decisión humana por el
+checkpoint); fechas relativas ("hoy jueves") en notas de beats en vivo; dimensiones "checkpoint" y
+"workflows" de la revisión adversarial; `plan.md` v2.1.

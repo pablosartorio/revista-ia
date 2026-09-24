@@ -34,7 +34,8 @@
       <span>Fecha <b>{{ meta.fecha }}</b></span>
       <span>Semana ISO <b>{{ meta.semana_iso }}</b></span>
     </div>
-    <p class="concepto">{{ meta.concepto_tapa }}</p>
+    {# el copete es para lectores; concepto_tapa es una nota interna del director de arte y no se publica #}
+    {% if meta.copete %}<p class="concepto">{{ meta.copete }}</p>{% endif %}
   </div>
 </header>
 

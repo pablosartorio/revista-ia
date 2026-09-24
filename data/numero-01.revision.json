@@ -1,0 +1,223 @@
+{
+  "numero": "01",
+  "decisiones": {
+    "feature": {
+      "accion": "aprobar",
+      "hash": "9d5ac3fc1c0138719966b6605bf3c63ef677becea216553782120f3bd511a07b",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "4f81c3a591561e52dbec8a58867712c02222d90f6f839729d10544e89ab79717"
+    },
+    "llm": {
+      "accion": "aprobar",
+      "hash": "bab73d7f0016b77bcf733bf3c40e2025b93fc9da33a415db985ae2ef46b0e17d",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "b21fd0405a136350c92cff37db4aeaf6bf78b394de9b501e45665010253ee1ed"
+    },
+    "hardware": {
+      "accion": "aprobar",
+      "hash": "b493ed847431ed4198f0294e9a2a00ef5e3d9d229e22602bbe5e24443b919a3d",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "41a71349660dd57fe2b0b2a50b97e839f6aeb7627a66acf4c4654d3160542e75"
+    },
+    "politica": {
+      "accion": "aprobar",
+      "hash": "6de0056fc04290332a122c8024c834728d97db413a5c3ef1bb523d828381047f",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "4eb26d9e9222951d0b733613237b3bf96b899908f01002b6308c1471054e7340"
+    },
+    "safety": {
+      "accion": "aprobar",
+      "hash": "3c9384085c17998d21c21e523a203f6acc3457a66dee20413ac91ffc903807b8",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "5ddfc17a650c7a406e1e331ddd2400fdcc509be7ff48e0c6f3952cb90f6b2f4f"
+    },
+    "industria_robotica": {
+      "accion": "aprobar",
+      "hash": "ab9244e92da636d565eee772c4d31e603ad8dda05faa84c5f75cfa64f50c6da8",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "f63ed6bd04d9f65f294d4fe6f42e65f486e4a735ed941a0a28b6e98ac466d610"
+    },
+    "argentina": {
+      "accion": "aprobar",
+      "hash": "86b19c485476083d0dcf327df8652b9ea88f404a6bc90d1e500f816bff3d8641",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "53cb2b83c9713e3f2d2c09c9a11ed7d3cdd9386c81993995c44a9b6f72586edf"
+    },
+    "latam": {
+      "accion": "aprobar",
+      "hash": "e944e1e951a2b81f0f5cf303a9a5339f15330c644c1998a84536bf7513037879",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "nota": "",
+      "riesgos_aceptados": [],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "987341c42ae3efc53f14829a42340282a0433faae4d048707bfa738997d8dd09"
+    },
+    "ciencia_salud": {
+      "accion": "aprobar",
+      "hash": "e8a5d35e5f5c9ccbcd5ad69ad419cd102f047d53887bacd2b01e3673e6f5c364",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T18:57:09-03:00",
+      "nota": "Enchant v3 figura en el comunicado; acepto el 'núcleo' como lectura",
+      "riesgos_aceptados": [
+        "afirmacion_no_verificable:ciencia_salud#5:7631a89c67"
+      ],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "608f5507fa56568c6c9bb3c89795576980f692afa864fe004b1c80eaaf6da568"
+    },
+    "espacio": {
+      "accion": "aprobar",
+      "hash": "986332a378d054fe8e59877f97e0514f58f9affd20b1b0dac2a75f4a5cb32fe9",
+      "revisor": "Pablo Sartorio",
+      "fecha": "2026-09-24T19:02:42-03:00",
+      "nota": "Corrección manual: coordenadas de C2 y fecha del paso más alto",
+      "riesgos_aceptados": [
+        "afirmacion_no_aplicado:espacio#2:221fc7f972",
+        "resolucion_no_aplicada:C2:029482b5d9",
+        "resolucion_no_aplicada:C7:dcb91423dd",
+        "guarda_correccion_no_aplicada:cierre:b658d44ef6"
+      ],
+      "huella": "eff6efdaf65cbf13",
+      "firma": "f6fe30461dad071291bbb8173c1f99ffa35841c8213b3fc439379cd906c27df2"
+    }
+  },
+  "tapa": {
+    "candidato": "A2",
+    "archivo": "tapa/elegida-fd9499f47c426400.svg",
+    "hash_svg": "fd9499f47c426400faa1e261978057d0bd386b70875e000d4c48aba09a6ada2c",
+    "hash_meta": "d8cf3ccfce1836df8e500252aedb97e9b3d77f280d4dd687e9ebaf257cb1f7ca",
+    "riesgos_aceptados": [],
+    "nota": "",
+    "revisor": "Pablo Sartorio",
+    "fecha": "2026-09-24T19:22:07-03:00",
+    "huella": "eff6efdaf65cbf13",
+    "firma": "17eafa3c25666b631d52a44341c72bad9e85303b9c1d64e38c35f9a17821ce23"
+  },
+  "publicacion": {
+    "revisor": "Pablo Sartorio",
+    "fecha": "2026-09-24T19:22:21-03:00",
+    "hashes": {
+      "feature": "9d5ac3fc1c0138719966b6605bf3c63ef677becea216553782120f3bd511a07b",
+      "llm": "bab73d7f0016b77bcf733bf3c40e2025b93fc9da33a415db985ae2ef46b0e17d",
+      "hardware": "b493ed847431ed4198f0294e9a2a00ef5e3d9d229e22602bbe5e24443b919a3d",
+      "politica": "6de0056fc04290332a122c8024c834728d97db413a5c3ef1bb523d828381047f",
+      "safety": "3c9384085c17998d21c21e523a203f6acc3457a66dee20413ac91ffc903807b8",
+      "ciencia_salud": "e8a5d35e5f5c9ccbcd5ad69ad419cd102f047d53887bacd2b01e3673e6f5c364",
+      "industria_robotica": "ab9244e92da636d565eee772c4d31e603ad8dda05faa84c5f75cfa64f50c6da8",
+      "argentina": "86b19c485476083d0dcf327df8652b9ea88f404a6bc90d1e500f816bff3d8641",
+      "latam": "e944e1e951a2b81f0f5cf303a9a5339f15330c644c1998a84536bf7513037879",
+      "espacio": "986332a378d054fe8e59877f97e0514f58f9affd20b1b0dac2a75f4a5cb32fe9"
+    },
+    "candidato": "A2",
+    "hash_tapa": "fd9499f47c426400faa1e261978057d0bd386b70875e000d4c48aba09a6ada2c",
+    "hash_meta": "d8cf3ccfce1836df8e500252aedb97e9b3d77f280d4dd687e9ebaf257cb1f7ca",
+    "archivos": {
+      "index.html": "9062168213a2d32c125967cc8a321c9ae6a55baa081e2104141a0ae64ea61f6b",
+      "index.md": "f0767d76a45fa086d3f716cf495d779885c465aeb13ba75cb5c746c139a1ecf8",
+      "tapa.svg": "fd9499f47c426400faa1e261978057d0bd386b70875e000d4c48aba09a6ada2c",
+      "tapa.png": "538bf33ef1acacb066f8fd08e213537dbde949318daa0ac99b38bd6c61dbb2cf"
+    },
+    "huella": "eff6efdaf65cbf13",
+    "firma": "52fbfaddd95fa73beea058ab17180fb49f14bf74799fe71ddc3495e71b2c8c75"
+  },
+  "historial": [
+    {
+      "fecha": "2026-09-24T16:32:21-03:00",
+      "accion": "iniciar_revision"
+    },
+    {
+      "fecha": "2026-09-24T18:56:27-03:00",
+      "accion": "aprobar",
+      "revisor": "Pablo Sartorio",
+      "bloques": [
+        "feature",
+        "llm",
+        "hardware",
+        "politica",
+        "safety",
+        "industria_robotica",
+        "argentina",
+        "latam"
+      ]
+    },
+    {
+      "fecha": "2026-09-24T18:57:09-03:00",
+      "accion": "aprobar",
+      "revisor": "Pablo Sartorio",
+      "bloques": [
+        "ciencia_salud"
+      ]
+    },
+    {
+      "fecha": "2026-09-24T18:57:30-03:00",
+      "accion": "aprobar",
+      "revisor": "Pablo Sartorio",
+      "bloques": [
+        "espacio"
+      ]
+    },
+    {
+      "fecha": "2026-09-24T18:57:52-03:00",
+      "accion": "elegir_tapa",
+      "revisor": "Pablo Sartorio",
+      "candidato": "A2"
+    },
+    {
+      "fecha": "2026-09-24T18:58:11-03:00",
+      "accion": "publicar",
+      "revisor": "Pablo Sartorio"
+    },
+    {
+      "fecha": "2026-09-24T19:02:42-03:00",
+      "accion": "aprobar",
+      "revisor": "Pablo Sartorio",
+      "bloques": [
+        "espacio"
+      ]
+    },
+    {
+      "fecha": "2026-09-24T19:02:55-03:00",
+      "accion": "publicar",
+      "revisor": "Pablo Sartorio"
+    },
+    {
+      "fecha": "2026-09-24T19:22:07-03:00",
+      "accion": "elegir_tapa",
+      "revisor": "Pablo Sartorio",
+      "candidato": "A2"
+    },
+    {
+      "fecha": "2026-09-24T19:22:21-03:00",
+      "accion": "publicar",
+      "revisor": "Pablo Sartorio"
+    }
+  ]
+}

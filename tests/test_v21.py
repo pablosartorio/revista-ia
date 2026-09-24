@@ -108,3 +108,14 @@ def test_importar_desenvuelve_el_output_del_workflow(entorno, tmp_path):
     ruta.write_text(json.dumps({"summary": "ok", "logs": ["a", "b"], "result": d}), encoding="utf-8")
     destino = importar(ruta)
     assert destino.name == "numero-08.json"
+
+
+def test_la_portada_publica_el_copete_y_no_el_concepto_interno(entorno):
+    d = _datos(entorno)
+    d["meta"]["concepto_tapa"] = "La tapa enfrenta (feature, hardware) con el dato ancla."
+    d["meta"]["copete"] = "Un copete para lectores."
+    _guardar(entorno, d)
+    estado.iniciar_revision("99")
+    borrador, revision = (a.read_text(encoding="utf-8") for a in render_borrador("99"))
+    assert "Un copete para lectores." in borrador and "dato ancla" not in borrador
+    assert "nota interna" in revision and "dato ancla" in revision

@@ -39,6 +39,8 @@
     <span>Afirmaciones <b>{{ verificacion.total }}</b></span>
     <span>Conflictos entre notas <b>{{ conflictos|length }}</b></span>
   </div>
+  <p><b>Copete de portada</b> (se publica): {% if meta.copete %}{{ meta.copete }}{% else %}<span class="riesgo alto">sin copete: la portada sale sin bajada</span>{% endif %}</p>
+  {% if meta.concepto_tapa %}<p class="small"><b>Concepto de tapa</b> (nota interna del director de arte, no se publica): {{ meta.concepto_tapa }}</p>{% endif %}
 </header>
 
 <section style="--acento:#fbbf24">
@@ -47,7 +49,7 @@
 <ol>
   <li><b>Bloques sin riesgos</b> ({{ resumen.pendientes|length - resumen.bloqueantes|length }}): se pueden aprobar juntos. <code class="mono">--todo</code> sólo aprueba los que no tienen riesgos abiertos.</li>
   <li><b>Bloques con riesgos</b> ({{ resumen.bloqueantes|length }}): hay que decidirlos uno por uno: aprobar con una nota que justifique, o retirar.</li>
-  <li><b>Tapa</b>: confirmar la sugerida por los jueces o elegir otra. Elegir la tapa también aprueba el título del número y el concepto de tapa.</li>
+  <li><b>Tapa</b>: confirmar la sugerida por los jueces o elegir otra. Elegir la tapa también aprueba el título del número y el copete de portada.</li>
 </ol>
 <div class="cmd">uv run condor aprobar {{ numero }} --todo --revisor "Tu Nombre"
 {% for f in resumen.bloqueantes %}uv run condor aprobar {{ numero }} --bloque {{ f.clave }} --revisor "Tu Nombre" --nota "por qué se publica igual"
