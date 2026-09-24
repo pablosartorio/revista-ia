@@ -1,0 +1,862 @@
+<!doctype html>
+<!--
+  PLAN DE DISEÑO — landing de la revista (docs/index.html)
+
+  Concepto: "hoja de datos de campo". Papel técnico gris frío con retícula de relevamiento,
+  como una carta topográfica o la planilla de una estación: tipografía de rótulo, lecturas de
+  instrumento en monoespaciada y texto de revista en serif. La retícula de cuadrados de la tapa
+  del Nº 01 (celdas de un rack) vuelve como sistema: el gráfico de afirmaciones es una
+  retícula de 148 celdas, y en el staff un cuadrado lleno marca a una persona, uno vacío a un
+  agente y uno punteado al código. Composición asimétrica: rótulo de sección en una columna
+  izquierda angosta, contenido a la derecha; nada centrado por defecto.
+
+  Colores (claro → oscuro; el oscuro toma los tonos de la tapa del Nº 01):
+    papel     #EDEFEA → #0E1A2B   fondo
+    hoja      #F8F9F6 → #14243A   superficies (fichas, caja de staff)
+    tinta     #14202B → #E8E2D6   texto
+    tinta-2   #4B5864 → #A3AEBA   texto secundario
+    glaciar   #0D6B75 → #45BDB3   acento principal: enlaces, confirmado, agentes
+    señal     #9C5410 → #E08A3C   acento humano: checkpoint, persona, matizado
+    (alerta   #A8392B → #E0705F   sólo para "no aplicada" en gráficos)
+
+  Tipografías (Google Fonts, con respaldo de sistema):
+    Archivo (ejes wdth/wght)  rótulos, títulos, logotipo (ancho expandido)
+    Source Serif 4            texto de lectura
+    IBM Plex Mono             datos, lecturas, cifras, comandos
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cóndor</title>
+<meta name="description" content="Revista de IA, tecnología y ciencia desde Argentina y América Latina, escrita por una redacción de agentes de IA con verificación afirmación por afirmación y aprobación humana firmada.">
+<script>try { var t = localStorage.getItem('condor-tema'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --papel: #EDEFEA;
+  --hoja: #F8F9F6;
+  --tinta: #14202B;
+  --tinta-2: #4B5864;
+  --linea: #C6CCC5;
+  --reticula: rgba(20, 32, 43, .055);
+  --glaciar: #0D6B75;
+  --glaciar-suave: rgba(13, 107, 117, .12);
+  --senal: #9C5410;
+  --senal-suave: rgba(156, 84, 16, .12);
+  --alerta: #A8392B;
+  --f-rotulo: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-texto: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-datos: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --ancho: 1180px;
+  --gutter: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --papel: #0E1A2B;
+    --hoja: #14243A;
+    --tinta: #E8E2D6;
+    --tinta-2: #A3AEBA;
+    --linea: #2C3D55;
+    --reticula: rgba(232, 226, 214, .045);
+    --glaciar: #45BDB3;
+    --glaciar-suave: rgba(69, 189, 179, .14);
+    --senal: #E08A3C;
+    --senal-suave: rgba(224, 138, 60, .14);
+    --alerta: #E0705F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --papel: #0E1A2B;
+  --hoja: #14243A;
+  --tinta: #E8E2D6;
+  --tinta-2: #A3AEBA;
+  --linea: #2C3D55;
+  --reticula: rgba(232, 226, 214, .045);
+  --glaciar: #45BDB3;
+  --glaciar-suave: rgba(69, 189, 179, .14);
+  --senal: #E08A3C;
+  --senal-suave: rgba(224, 138, 60, .14);
+  --alerta: #E0705F;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--f-texto);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+img, svg { max-width: 100%; }
+img { height: auto; display: block; }
+a { color: var(--glaciar); text-decoration-thickness: 1px; text-underline-offset: .18em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--senal); outline-offset: 3px; border-radius: 2px; }
+p { margin: 0 0 1em; }
+h1, h2, h3, h4 { font-family: var(--f-rotulo); line-height: 1.12; margin: 0; font-weight: 750; letter-spacing: -.01em; }
+.datos { font-family: var(--f-datos); font-size: .8125rem; letter-spacing: .01em; }
+.contenedor { max-width: var(--ancho); margin-inline: auto; padding-inline: var(--gutter); }
+.salto { position: absolute; left: -9999px; top: 0; background: var(--hoja); color: var(--tinta); padding: .6rem 1rem; z-index: 10; }
+.salto:focus { left: var(--gutter); top: .5rem; }
+
+/* Cabecera */
+.cabecera { border-bottom: 1px solid var(--linea); background: var(--papel); }
+.cabecera .contenedor { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.5rem; padding-block: .85rem; }
+.logo { font-family: var(--f-rotulo); font-stretch: 125%; font-weight: 850; font-size: 1.35rem; letter-spacing: .02em; color: var(--tinta); text-decoration: none; text-transform: uppercase; }
+.navegacion { display: flex; flex-wrap: wrap; gap: .25rem 1.1rem; margin-left: auto; font-family: var(--f-rotulo); font-size: .875rem; font-weight: 550; }
+.navegacion a { color: var(--tinta-2); text-decoration: none; }
+.navegacion a:hover { color: var(--tinta); text-decoration: underline; }
+.tema { font-family: var(--f-datos); font-size: .75rem; background: transparent; color: var(--tinta-2); border: 1px solid var(--linea); border-radius: 2px; padding: .3rem .55rem; cursor: pointer; }
+.tema:hover { color: var(--tinta); border-color: var(--tinta-2); }
+
+/* Portada */
+.portada { position: relative; border-bottom: 1px solid var(--linea); overflow: hidden; }
+.portada::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(var(--reticula) 1px, transparent 1px),
+    linear-gradient(90deg, var(--reticula) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.portada .contenedor { position: relative; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 3rem; padding-block: 3.5rem 3rem; align-items: start; }
+.volanta { font-family: var(--f-datos); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--senal); margin: 0 0 1.1rem; }
+.portada h1 { font-size: clamp(2.1rem, 5.2vw, 3.9rem); font-stretch: 88%; font-weight: 800; letter-spacing: -.02em; max-width: 18ch; }
+.bajada { font-size: 1.2rem; line-height: 1.55; max-width: 36rem; margin: 1.5rem 0 0; }
+.bajada strong { font-weight: 600; }
+.lecturas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 2.4rem 0 0; border-top: 1px solid var(--tinta); max-width: 40rem; }
+.lecturas div { padding: .7rem .9rem .8rem 0; border-bottom: 1px solid var(--linea); }
+.lecturas dt { font-family: var(--f-datos); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--tinta-2); }
+.lecturas dd { margin: .15rem 0 0; font-family: var(--f-rotulo); font-stretch: 110%; font-weight: 750; font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.lecturas dd small { font-family: var(--f-texto); font-size: .8rem; font-weight: 400; font-stretch: 100%; color: var(--tinta-2); display: block; margin-top: .1rem; line-height: 1.35; }
+.tapa-portada { margin: 0; }
+.tapa-portada > a { display: block; }
+.tapa-portada img { width: 100%; max-width: 380px; border: 1px solid var(--linea); box-shadow: 0 1px 0 var(--linea), 10px 10px 0 var(--glaciar-suave); }
+.tapa-portada figcaption { font-family: var(--f-datos); font-size: .75rem; color: var(--tinta-2); margin-top: .8rem; max-width: 380px; line-height: 1.5; }
+
+/* Secciones */
+.seccion { border-bottom: 1px solid var(--linea); }
+.seccion > .contenedor { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 2.5rem; padding-block: 3.5rem; }
+.rotulo { font-family: var(--f-datos); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--tinta-2); padding-top: .55rem; border-top: 3px solid var(--tinta); align-self: start; }
+.rotulo span { display: block; color: var(--senal); margin-bottom: .2rem; }
+.seccion h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); font-stretch: 92%; max-width: 24ch; margin-bottom: 1.2rem; }
+.seccion h3 { font-size: 1.2rem; font-stretch: 100%; margin: 2.2rem 0 .7rem; }
+.texto { max-width: 42rem; }
+.texto-ancho { max-width: 58rem; }
+.nota-fuente { font-family: var(--f-datos); font-size: .75rem; color: var(--tinta-2); line-height: 1.5; }
+
+/* Misión / objetivos / filosofía */
+.mision { font-family: var(--f-texto); font-size: clamp(1.3rem, 2.4vw, 1.65rem); line-height: 1.4; max-width: 38rem; margin: 0 0 2rem; padding-left: 1.1rem; border-left: 3px solid var(--senal); }
+.dos-columnas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
+.lista-lineas { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--linea); }
+.lista-lineas li { padding: .75rem 0; border-bottom: 1px solid var(--linea); }
+.lista-lineas b { font-family: var(--f-rotulo); font-weight: 700; font-size: .98rem; display: block; margin-bottom: .1rem; }
+
+/* Novedades */
+.nota-fondo { background: var(--hoja); border: 1px solid var(--linea); padding: 1.5rem 1.6rem 1.2rem; margin: 0 0 2.5rem; max-width: 58rem; }
+.nota-fondo .etiqueta { font-family: var(--f-datos); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--glaciar); margin: 0 0 .5rem; }
+.nota-fondo h3 { margin: 0 0 .8rem; font-size: 1.35rem; font-stretch: 95%; }
+.grafico { margin: 1.6rem 0 1.8rem; max-width: 58rem; }
+.grafico figcaption { font-family: var(--f-rotulo); font-weight: 700; font-size: 1rem; margin-bottom: .2rem; }
+.grafico .sub { font-family: var(--f-texto); font-size: .92rem; color: var(--tinta-2); margin: 0 0 1rem; }
+.barras { list-style: none; margin: 0; padding: 0; }
+.barras li { display: grid; grid-template-columns: 15rem minmax(0, 1fr) 6.5rem; align-items: center; gap: .9rem; padding: .45rem 0; border-bottom: 1px solid var(--linea); }
+.barras .nombre { font-family: var(--f-rotulo); font-size: .88rem; font-weight: 600; line-height: 1.25; }
+.barras .nombre small { display: block; font-family: var(--f-datos); font-size: .7rem; font-weight: 400; color: var(--tinta-2); margin-top: .15rem; }
+.barras .pista { height: 1.05rem; position: relative; }
+.barras .barra { height: 100%; }
+.barras .real .barra { background: var(--glaciar); }
+.barras .proyecto .barra { border: 1.5px solid var(--senal); background: repeating-linear-gradient(135deg, var(--senal-suave) 0 4px, transparent 4px 8px); }
+.barras .valor { font-family: var(--f-datos); font-size: .85rem; text-align: right; font-variant-numeric: tabular-nums; }
+.leyenda { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin: .8rem 0 0; font-family: var(--f-datos); font-size: .75rem; color: var(--tinta-2); }
+.leyenda i { display: inline-block; width: .9rem; height: .7rem; vertical-align: -.05rem; margin-right: .4rem; }
+.leyenda .l-real { background: var(--glaciar); }
+.leyenda .l-proy { border: 1.5px solid var(--senal); background: repeating-linear-gradient(135deg, var(--senal-suave) 0 3px, transparent 3px 6px); }
+.region { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; max-width: 58rem; margin-top: 2.5rem; }
+.region h3 { margin-top: 0; }
+.cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 1rem 0 1.2rem; border-top: 1px solid var(--tinta); }
+.cifras div { padding: .6rem .6rem .7rem 0; border-bottom: 1px solid var(--linea); }
+.cifras dt { font-family: var(--f-rotulo); font-stretch: 105%; font-weight: 750; font-size: 1.35rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cifras dd { margin: .2rem 0 0; font-size: .8rem; line-height: 1.35; color: var(--tinta-2); }
+.tambien { list-style: none; padding: 0; margin: .6rem 0 0; max-width: 58rem; border-top: 1px solid var(--linea); }
+.tambien li { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--linea); font-size: .98rem; line-height: 1.45; }
+.tambien .sec { font-family: var(--f-datos); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--tinta-2); padding-top: .2rem; }
+.piloto { margin-top: 2.2rem; max-width: 42rem; padding: 1rem 1.2rem; border: 1px dashed var(--tinta-2); }
+.piloto p:last-child { margin-bottom: 0; }
+
+/* Staff */
+.caja-staff { background: var(--hoja); border: 1px solid var(--tinta); padding: 1.6rem 1.6rem .6rem; max-width: 58rem; }
+.caja-staff .cabeza { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1.5rem; border-bottom: 3px double var(--tinta); padding-bottom: .8rem; margin-bottom: 1.2rem; }
+.caja-staff .cabeza strong { font-family: var(--f-rotulo); font-stretch: 125%; font-weight: 850; font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; }
+.caja-staff .cabeza span { font-family: var(--f-datos); font-size: .75rem; color: var(--tinta-2); align-self: end; }
+.staff-grilla { columns: 2; column-gap: 2.5rem; }
+.puesto { break-inside: avoid; margin: 0 0 1.15rem; }
+.puesto dt { font-family: var(--f-rotulo); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--tinta-2); display: flex; align-items: center; gap: .5rem; }
+.puesto dd { margin: .2rem 0 0; font-size: .95rem; line-height: 1.45; }
+.puesto dd b { font-family: var(--f-rotulo); font-weight: 700; }
+.marca { width: .7rem; height: .7rem; flex: none; display: inline-block; }
+.m-persona { background: var(--senal); }
+.m-agente { border: 1.5px solid var(--glaciar); }
+.m-codigo { border: 1.5px dotted var(--tinta-2); }
+.m-documento { border: 1.5px solid var(--senal); background: linear-gradient(to top right, transparent calc(50% - .75px), var(--senal) calc(50% - .75px), var(--senal) calc(50% + .75px), transparent calc(50% + .75px)); }
+.leyenda-staff { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; font-family: var(--f-datos); font-size: .75rem; color: var(--tinta-2); margin: 1rem 0 0; }
+.leyenda-staff span { display: inline-flex; align-items: center; gap: .45rem; }
+
+/* Diagramas */
+.diagrama { margin: 2rem 0 0; max-width: 58rem; }
+.diagrama img { width: 100%; border: 1px solid var(--linea); background: var(--hoja); }
+.diagrama figcaption { font-family: var(--f-datos); font-size: .75rem; color: var(--tinta-2); margin-top: .6rem; }
+.diagrama .desliza { display: block; }
+.diagrama .desliza:focus-visible { outline-offset: 2px; }
+.pista-desliza { display: none; font-family: var(--f-datos); font-size: .72rem; color: var(--tinta-2); margin: 0 0 .4rem; }
+
+/* Organización */
+.secciones-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; border-top: 1px solid var(--linea); max-width: 58rem; }
+.secciones-lista li { padding: .65rem 0; border-bottom: 1px solid var(--linea); font-family: var(--f-rotulo); font-weight: 600; font-size: .95rem; line-height: 1.3; }
+.secciones-lista li small { display: block; font-family: var(--f-texto); font-weight: 400; font-size: .85rem; color: var(--tinta-2); margin-top: .15rem; }
+.secciones-lista .destacada { grid-column: 1 / -1; }
+.recorrido { list-style: none; margin: 1rem 0 0; padding: 0; counter-reset: paso; max-width: 58rem; }
+.recorrido li { counter-increment: paso; display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .8rem; padding: .7rem 0; border-bottom: 1px solid var(--linea); }
+.recorrido li::before { content: counter(paso, decimal-leading-zero); font-family: var(--f-datos); font-size: .85rem; color: var(--glaciar); padding-top: .15rem; }
+.recorrido li.humano::before { color: var(--senal); }
+.recorrido b { font-family: var(--f-rotulo); font-weight: 700; }
+.recorrido li.humano b { color: var(--senal); }
+
+/* IA */
+.principios { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2.5rem; list-style: none; padding: 0; margin: 0; max-width: 58rem; border-top: 1px solid var(--linea); }
+.principios li { padding: .8rem 0; border-bottom: 1px solid var(--linea); font-size: .98rem; line-height: 1.5; }
+.principios b { font-family: var(--f-rotulo); display: block; font-size: 1rem; margin-bottom: .15rem; }
+.waffle { width: 100%; height: auto; display: block; margin-top: .4rem; }
+.w-conf { fill: var(--glaciar); }
+.w-mat { fill: var(--senal); }
+.w-cor { fill: var(--tinta); }
+.w-nv { fill: none; stroke: var(--tinta); stroke-width: 1.5; }
+.w-na { fill: var(--alerta); }
+.leyenda-waffle { display: grid; grid-template-columns: repeat(5, auto); justify-content: start; gap: .3rem 1.6rem; margin-top: .9rem; font-family: var(--f-datos); font-size: .78rem; }
+.leyenda-waffle span { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+.leyenda-waffle b { font-weight: 500; font-variant-numeric: tabular-nums; }
+.leyenda-waffle i { width: .8rem; height: .8rem; display: inline-block; border-radius: 1px; }
+.fallos { width: 100%; max-width: 58rem; border-collapse: collapse; margin: 1rem 0 .6rem; font-size: .92rem; }
+.fallos th, .fallos td { text-align: left; padding: .5rem .8rem .5rem 0; border-bottom: 1px solid var(--linea); vertical-align: top; }
+.fallos th { font-family: var(--f-datos); font-size: .72rem; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--tinta-2); border-bottom-color: var(--tinta); }
+.fallos td:first-child { font-family: var(--f-datos); white-space: nowrap; }
+.ok { color: var(--glaciar); }
+.pendiente { color: var(--senal); }
+.checkpoint { margin-top: 2.5rem; max-width: 58rem; border-top: 3px solid var(--senal); padding-top: 1.4rem; }
+.checkpoint h3 { margin-top: 0; }
+.comandos { font-family: var(--f-datos); font-size: .8rem; line-height: 1.7; background: var(--hoja); border: 1px solid var(--linea); padding: 1rem 1.1rem; overflow-x: auto; margin: 1rem 0 1.2rem; white-space: pre; }
+.aparte { font-size: .95rem; color: var(--tinta-2); border-left: 1px solid var(--tinta-2); padding-left: 1rem; max-width: 42rem; }
+
+/* Números */
+.numeros { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 2.5rem; max-width: 58rem; }
+.ficha-numero { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: 1.5rem; background: var(--hoja); border: 1px solid var(--linea); padding: 1.3rem; }
+.ficha-numero img { width: 100%; border: 1px solid var(--linea); }
+.ficha-numero .num { font-family: var(--f-datos); font-size: .75rem; color: var(--tinta-2); text-transform: uppercase; letter-spacing: .06em; }
+.ficha-numero h3 { margin: .3rem 0 .6rem; font-size: 1.6rem; font-stretch: 90%; }
+.ficha-numero p { font-size: .98rem; line-height: 1.5; }
+.ficha-numero .enlaces { font-family: var(--f-rotulo); font-size: .9rem; font-weight: 600; margin: 0; }
+.ficha-piloto { border: 1px dashed var(--tinta-2); padding: 1.3rem; }
+.ficha-piloto h3 { margin: .3rem 0 .6rem; font-size: 1.35rem; font-stretch: 90%; }
+.ficha-piloto p { font-size: .95rem; line-height: 1.5; }
+.ficha-numero p.datos, .ficha-piloto p.datos { font-family: var(--f-datos); font-size: .8125rem; line-height: 1.5; }
+.documentos { list-style: none; padding: 0; margin: 2.5rem 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; max-width: 58rem; border-top: 1px solid var(--tinta); }
+.documentos li { padding: .8rem 0; border-bottom: 1px solid var(--linea); font-size: .92rem; line-height: 1.45; }
+.documentos a { font-family: var(--f-rotulo); font-weight: 700; font-size: 1rem; display: inline-block; margin-bottom: .15rem; }
+
+/* Pie */
+.pie { padding-block: 2rem 2.6rem; font-family: var(--f-datos); font-size: .78rem; color: var(--tinta-2); line-height: 1.6; }
+.pie .contenedor { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem 2rem; }
+.pie p { margin: 0; max-width: 40rem; }
+
+/* Responsive */
+@media (max-width: 960px) {
+  .portada .contenedor { grid-template-columns: minmax(0, 1fr); gap: 2.2rem; }
+  .tapa-portada img, .tapa-portada figcaption { max-width: 300px; }
+  .seccion > .contenedor { grid-template-columns: minmax(0, 1fr); gap: 1.2rem; }
+  .rotulo { max-width: 14rem; }
+  .numeros { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  body { font-size: 1rem; }
+  .navegacion { margin-left: 0; width: 100%; order: 3; }
+  .tema { margin-left: auto; }
+  .portada .contenedor { padding-block: 2.2rem 2.2rem; }
+  .lecturas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lecturas dd { font-size: 1.55rem; }
+  .dos-columnas, .region, .principios { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .principios { gap: 0; }
+  .barras li { grid-template-columns: minmax(0, 1fr) 7rem; gap: .35rem .8rem; }
+  .barras .nombre { grid-column: 1 / -1; }
+  .secciones-lista, .documentos { grid-template-columns: minmax(0, 1fr); }
+  .staff-grilla { columns: 1; }
+  .caja-staff { padding: 1.2rem 1.1rem .4rem; }
+  .tambien li { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
+  .ficha-numero { grid-template-columns: minmax(0, 1fr); }
+  .ficha-numero img { max-width: 220px; }
+  .leyenda-waffle { grid-template-columns: repeat(2, auto); }
+  .fallos thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fallos tr { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); border-bottom: 1px solid var(--linea); padding-block: .35rem; }
+  .fallos td { border-bottom: 0; padding: .15rem .4rem .15rem 0; }
+  .fallos td:first-child { grid-row: span 2; white-space: normal; }
+  .fallos td:nth-child(3) { grid-column: 2; font-size: .88rem; }
+  .diagrama .desliza { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .diagrama .desliza img { min-width: 760px; }
+  .diagrama .pista-desliza { display: block; }
+  .seccion > .contenedor { padding-block: 2.5rem; }
+}
+</style>
+</head>
+<body>
+<a class="salto" href="#contenido">Saltar al contenido</a>
+
+<header class="cabecera">
+  <div class="contenedor">
+    <a class="logo" href="#">Cóndor</a>
+    <nav class="navegacion" aria-label="Secciones de la página">
+      <a href="#espiritu">Espíritu</a>
+      <a href="#novedades">Novedades</a>
+      <a href="#staff">Staff</a>
+      <a href="#organizacion">Organización</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#numeros">Números</a>
+      <a href="https://github.com/pablosartorio/revista-ia">Repositorio</a>
+    </nav>
+    <button class="tema" type="button" id="tema" aria-label="Tema oscuro" aria-pressed="false">claro / oscuro</button>
+  </div>
+</header>
+
+<main id="contenido">
+
+<section class="portada" aria-labelledby="titulo-portada">
+  <div class="contenedor">
+    <div>
+      <p class="volanta">Revista de IA, tecnología y ciencia · Argentina y América Latina</p>
+      <h1 id="titulo-portada">Qué pasó en IA, qué dato lo respalda y por qué importa desde acá.</h1>
+      <p class="bajada">La escribe una redacción de agentes de IA. Cada afirmación se verifica por separado, con otro modelo configurado para verificar (Sonnet en el Nº 01). <strong>Ningún número sale sin que una persona lo apruebe y lo firme.</strong></p>
+      <dl class="lecturas" aria-label="El Nº 01 en cifras">
+        <div><dt>Agentes</dt><dd>75<small>en la corrida final del Nº 01 (la investigación se reusó)</small></dd></div>
+        <div><dt>Afirmaciones</dt><dd>148<small>verificadas una por una</small></dd></div>
+        <div><dt>Confirmadas</dt><dd>136<small>tal como se publicaron</small></dd></div>
+        <div><dt>Conflictos</dt><dd>8<small>entre notas, resueltos por debate</small></dd></div>
+        <div><dt>Secciones</dt><dd>9<small>más una nota de fondo</small></dd></div>
+        <div><dt>Personas</dt><dd>1<small>aprueba y publica</small></dd></div>
+      </dl>
+    </div>
+    <figure class="tapa-portada">
+      <a href="https://github.com/pablosartorio/revista-ia/blob/main/output/numero-01/index.md">
+        <img src="img/tapa-01.png" width="1200" height="1600" alt="Tapa del Nº 01, Megavatios en espera: un tomacorriente dibujado como una grilla de celdas de rack casi vacías; un cable color cobre lleva a cuatro módulos de 128 GB contra uno de 512 GB, con la leyenda «44,2 W contra 16,0 W, según Micron». Textos: «El cómputo para IA en la región, entre la energía y los incentivos» y «Claude Opus 5.5 bajo la lupa de METR: mejora modesta sobre Fable 5.1».">
+      </a>
+      <figcaption>Nº 01 · 23 de septiembre de 2026 · «Megavatios en espera». Tapa dibujada en <a href="img/tapa-01.svg">SVG</a> por un agente ilustrador. El jurado de agentes la sugirió y el revisor la eligió.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="seccion" id="espiritu" aria-labelledby="t-espiritu">
+  <div class="contenedor">
+    <p class="rotulo"><span>Qué es</span>Espíritu</p>
+    <div class="texto">
+      <h2 id="t-espiritu">Un colega informado hablándole a un colega en formación.</h2>
+      <p>Escribimos para quien trabaja con datos y modelos. Pensamos en alguien que está en un equipo de ciencia de datos e IA, con base física o matemática fuerte, y que quiere seguir lo que pasa en el mundo sin perder de vista qué significa para Argentina y América Latina.</p>
+      <p>El registro es el de MIT Technology Review o The Gradient: técnico pero legible. No es un paper académico ni divulgación básica. Cada nota dice qué pasó, con qué dato concreto y por qué importa. Si no se puede decir corto, todavía no está claro.</p>
+      <p>La región tiene lugar fijo. Cada número lleva al menos dos o tres notas con foco regional, aunque su impacto global sea menor, y la sección Argentina nunca queda vacía. Una sección, Ciencia y Espacio desde la Patagonia, no sale de la web: se arma con datos en vivo de satélites.</p>
+      <p>Y mostramos cómo se hace. Cada número cierra con una caja que dice cuántas afirmaciones se verificaron y qué pasó con cada una. El código de la redacción es público.</p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="mision" aria-labelledby="t-mision">
+  <div class="contenedor">
+    <p class="rotulo"><span>Dirección editorial</span>Misión, objetivos y filosofía</p>
+    <div>
+      <h2 id="t-mision">Síntesis, no resumen.</h2>
+      <p class="mision">Contar la IA de la semana en dos o tres oraciones por hecho: qué pasó, qué dato lo respalda y por qué le importa a quien trabaja con datos desde la región.</p>
+      <div class="dos-columnas">
+        <div>
+          <h3 style="margin-top:0">Objetivos</h3>
+          <ul class="lista-lineas">
+            <li><b>Nueve secciones, un ítem fuerte en cada una</b>Más una nota de fondo que cruza varias noticias de la semana con un ángulo propio.</li>
+            <li><b>Cada afirmación, verificada por separado</b>Con otro modelo, configurado para verificar (Sonnet en el Nº 01), que busca la fuente de cero.</li>
+            <li><b>Las notas, cruzadas entre sí</b>La misma cifra no puede quedar confirmada en una sección y en duda en otra.</li>
+            <li><b>Publicar sólo lo que una persona aprobó</b>Bloque por bloque, con la decisión firmada.</li>
+            <li><b>Mostrar el método en cada número</b>Qué se confirmó, qué se matizó, qué se corrigió y qué no se pudo verificar.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="margin-top:0">Filosofía</h3>
+          <ul class="lista-lineas">
+            <li><b>El dato concreto primero</b>Parámetros, benchmark, dólares, fecha: siempre que exista.</li>
+            <li><b>Sin marketing</b>«Revolucionario» o «cambia todo» sólo si la evidencia lo dice literalmente.</li>
+            <li><b>Open-weight o propietario</b>Todo modelo de lenguaje lleva la aclaración.</li>
+            <li><b>Lo que no se ve no se inventa</b>Detrás de un paywall se marca [paywall] y se resume sólo lo visible.</li>
+            <li><b>Cortar antes que rellenar</b>Una sección que no encontró nada verificable en la semana se omite.</li>
+            <li><b>Los problemas quedan a la vista</b>Un dato contradicho se excluye o se marca como disputado. No se oculta.</li>
+            <li><b>La verificación baja el riesgo, no lo elimina</b>Por eso la última palabra la tiene una persona.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="novedades" aria-labelledby="t-novedades">
+  <div class="contenedor">
+    <p class="rotulo"><span>Nº 01 · 14 al 23/09/2026</span>Novedades en la región</p>
+    <div>
+      <h2 id="t-novedades">La región ofrece energía e incentivos. El cómputo para IA todavía no arranca.</h2>
+
+      <article class="nota-fondo">
+        <p class="etiqueta">Nota de fondo del Nº 01</p>
+        <h3>Argentina ofrece energía, Brasil resigna impuestos: el cómputo para IA en la región sigue sin arrancar</h3>
+        <p>Los proyectos argentinos se miden en megavatios. El Redata brasileño apunta al costo del hardware. Son dos recetas distintas para atraer cómputo y, por ahora, ninguna está en marcha. La nota suma un dato de afuera: Micron presentó un módulo de memoria de 512 GB que, según la empresa, consume 16,0 W contra 44,2 W de cuatro módulos de 128 GB. Cuánta capacidad útil entra en cada megavatio depende también del hardware que se instale.</p>
+        <p class="nota-fuente" style="margin:0">Fuentes de la nota: Bloomberg Línea, TELETIME y Tom's Hardware. Las cifras de Micron son del fabricante, sin verificación independiente.</p>
+      </article>
+
+      <h3>Argentina: 32 MW instalados, cientos de MW en evaluación</h3>
+      <div class="texto">
+        <p>Según un relevamiento que la Cámara Argentina de Internet (CABASE) presentó en mayo, citado por Bloomberg Línea, el país tiene 13 centros de datos de más de 1 MW, con una capacidad instalada conjunta cercana a los 32 MW. Los proyectos asociados a la demanda de IA hablan de cientos de MW. En casi todos el verbo es «analiza» o «evalúa»: no hay obras confirmadas.</p>
+      </div>
+
+      <figure class="grafico">
+        <figcaption>Capacidad instalada contra proyectos, en megavatios</figcaption>
+        <p class="sub">Barras a escala. Para los proyectos se toma la cifra máxima o la de primera fase que publicó el Nº 01.</p>
+        <ul class="barras">
+          <li class="real"><span class="nombre">Instalado hoy<small>13 centros de datos de más de 1 MW</small></span><span class="pista"><span class="barra" style="display:block;width:6.4%"></span></span><span class="valor">~32 MW</span></li>
+          <li class="proyecto"><span class="nombre">Pampa Energía, Loma de la Lata (Neuquén)<small>analiza · piloto de 20-40 MW según Yahoo Finance</small></span><span class="pista"><span class="barra" style="display:block;width:100%"></span></span><span class="valor">hasta 500 MW</span></li>
+          <li class="proyecto"><span class="nombre">Stargate Argentina (OpenAI y Sur Energy)<small>no avanzó · sin acuerdos definitivos</small></span><span class="pista"><span class="barra" style="display:block;width:100%"></span></span><span class="valor">hasta 500 MW</span></li>
+          <li class="proyecto"><span class="nombre">Green Capital (Chubut)<small>analiza · ampliable hasta 3.000 MW</small></span><span class="pista"><span class="barra" style="display:block;width:60%"></span></span><span class="valor">300 MW</span></li>
+          <li class="proyecto"><span class="nombre">FlexDomes (Neuquén)<small>evalúa · primera fase, US$1.400 millones</small></span><span class="pista"><span class="barra" style="display:block;width:24%"></span></span><span class="valor">120 MW</span></li>
+          <li class="proyecto"><span class="nombre">Bahía Blanca, zona franca<small>primera etapa · energía de Pampa Energía</small></span><span class="pista"><span class="barra" style="display:block;width:6%"></span></span><span class="valor">30 MW</span></li>
+        </ul>
+        <p class="leyenda"><span><i class="l-real"></i>en operación</span><span><i class="l-proy"></i>en análisis o evaluación</span></p>
+        <p class="nota-fuente" style="margin-top:.8rem">Fuente: Bloomberg Línea (17/09/2026), con datos de CABASE. Según BNamericas, la primera fase de Stargate Argentina sería de 100 MW, prevista para 2027.</p>
+      </figure>
+
+      <div class="texto">
+        <p>El anuncio más grande, Stargate Argentina, contemplaba una inversión potencial de hasta US$25.000 millones. La nota de Bloomberg Línea señala al RIGI como marco de estabilidad regulatoria, pero no dice que exija nada sobre el uso local de la capacidad. Para quien entrena o despliega modelos desde Argentina, el dato es la distancia entre los megavatios de hoy y los que existen sólo en proyectos.</p>
+      </div>
+
+      <div class="region">
+        <div>
+          <h3>Brasil: el Redata resigna impuestos</h3>
+          <p>Lula da Silva sancionó el martes 15 de septiembre la Lei 15.504/2026, que exime a los data centers de tres impuestos federales: Imposto de Importação, PIS/Cofins e IPI. A cambio pide criterios de sustentabilidad y destinar al mercado interno parte del procesamiento de datos.</p>
+          <dl class="cifras">
+            <div><dt>3</dt><dd>impuestos federales exentos</dd></div>
+            <div><dt>10%</dt><dd>mínimo para el mercado interno (8% en Norte, Nordeste y Centro-Oeste)</dd></div>
+            <div><dt>R$ 7,25</dt><dd>mil millones de costo fiscal estimado en tres años</dd></div>
+          </dl>
+          <p>El régimen todavía depende de reglamentación. Un decreto del mismo día ya fijó qué ítems pueden importarse con arancel cero, por 5 años.</p>
+          <p class="nota-fuente">Fuente: TELETIME (15/09/2026); estimación fiscal del dictamen del Senado, anterior a la sanción.</p>
+        </div>
+        <div>
+          <h3>Patagonia: el SAOCOM 1B sobre Bariloche</h3>
+          <p>El satélite de radar argentino pasa 15 veces sobre San Carlos de Bariloche entre el jueves 24 y el lunes 28 de septiembre, a más de 10° sobre el horizonte. Trabaja de día y de noche porque no necesita luz para tomar datos.</p>
+          <dl class="cifras">
+            <div><dt>15</dt><dd>pasos en 96 horas</dd></div>
+            <div><dt>81°</dt><dd>altura del paso más alto, jueves 24 a las 19:07</dd></div>
+            <div><dt>1</dt><dd>paso con condiciones de luz para verse</dd></div>
+          </dl>
+          <p>Ese único paso es el viernes 25 a las 06:54, a sólo 15° por el este. Es una oportunidad teórica: la documentación del servidor dice que un radar como el SAOCOM «nunca se ve a ojo desnudo».</p>
+          <p class="nota-fuente">Fuente: MCP patagonia-espacial, consultado el 24/09/2026. Horarios en hora argentina.</p>
+        </div>
+      </div>
+
+      <h3>También en el Nº 01</h3>
+      <ul class="tambien">
+        <li><span class="sec">Modelos</span><span>Anthropic presenta Claude Opus 5.5, un modelo propietario: 66,4% en Terminal-Bench 4.0 y, según la empresa, 40% menos de costo que Opus 5.</span></li>
+        <li><span class="sec">Seguridad</span><span>METR evaluó Claude Opus 5.5 antes del despliegue y encontró una mejora «modesta» sobre Fable 5.1 en capacidades de I+D de IA.</span></li>
+        <li><span class="sec">Hardware</span><span>Micron presenta un RDIMM DDR5 de 512 GB a 9200 MT/s: hasta 12 TB por servidor y, según Micron, 16 W por módulo.</span></li>
+        <li><span class="sec">Regulación</span><span>Un proyecto bipartidario en EE.UU. obligaría a la inteligencia a informar qué modelos de IA usa sobre los datos de la Sección 702 de FISA.</span></li>
+        <li><span class="sec">Ciencia y salud</span><span>AbbVie firma con Iambic un acuerdo multianual para descubrir moléculas pequeñas con el modelo Enchant v3.</span></li>
+        <li><span class="sec">Industria</span><span>Agility presenta Digit 5, un humanoide para trabajar sin barreras junto a operarios, con más de USD 300 millones en órdenes condicionadas a hitos.</span></li>
+      </ul>
+
+      <div class="piloto">
+        <p><b style="font-family:var(--f-rotulo)">El Nº 00 fue el piloto.</b> «Nadie estaba mirando» salió el 13 de septiembre de 2026, hecho por 15 agentes y corregido a mano. Ahí apareció el problema que ordenó todo lo que vino después: la misma cifra de Oracle quedó confirmada en una sección y sin verificar en la nota de fondo. Después se comprobó que el dato retirado era correcto. Restaurarlo es una decisión pendiente de quien revisa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="staff" aria-labelledby="t-staff">
+  <div class="contenedor">
+    <p class="rotulo"><span>Quiénes la hacen</span>Staff</p>
+    <div>
+      <h2 id="t-staff">Una persona decide. Los agentes escriben, verifican y discuten.</h2>
+      <div class="texto">
+        <p>Los agentes son instancias de Claude orquestadas con Workflows de Claude Code. Cada uno tiene un rol, una instrucción escrita y un formato de salida fijo. Algunos puestos de una redacción clásica acá son código: repartir el trabajo y maquetar no son decisiones editoriales.</p>
+      </div>
+      <div class="caja-staff">
+        <div class="cabeza"><strong>Cóndor</strong><span>Staff del Nº 01 · septiembre de 2026</span></div>
+        <dl class="staff-grilla">
+          <div class="puesto"><dt><i class="marca m-persona" aria-hidden="true"></i>Revisión, aprobación y publicación</dt><dd><b>Pablo Sartorio</b>. Aprueba o retira cada bloque, elige la tapa y publica, con decisiones firmadas.</dd></div>
+          <div class="puesto"><dt><i class="marca m-documento" aria-hidden="true"></i>Dirección editorial</dt><dd>Línea editorial fija, escrita en <code class="datos">roles/00</code>. No ejecuta: cada agente recibe las reglas que le tocan.</dd></div>
+          <div class="puesto"><dt><i class="marca m-codigo" aria-hidden="true"></i>Jefatura de redacción</dt><dd>El orquestador del número. Reparte las secciones, espera a que estén todas, arma el borrador y corta lo que no llega al estándar.</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Corresponsalías</dt><dd>8 corresponsales con búsqueda web, uno por sección. 1 corresponsal de Ciencia y Espacio que consulta satélites en vivo por MCP, sin web. En el Nº 01, las 8 secciones web y la nota de fondo salieron de una corrida anterior interrumpida.</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Nota de fondo</dt><dd>1 editor que lee las nueve secciones y escribe la pieza larga del número.</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Libro de afirmaciones</dt><dd>Un extractor por nota, que la descompone en afirmaciones con dato duro. Un verificador por nota, con otro modelo (Sonnet en el Nº 01).</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Reconciliación y debate</dt><dd>2 reconciliadores, uno de hechos y otro de cronología. Por cada conflicto, un defensor, un escéptico y un juez (hasta 10 debates).</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Consolidación y cierre</dt><dd>Un juez de consolidación cuando dos fallos tocan las mismas afirmaciones. Un editor de cierre por nota corregida, con una ronda de reparación.</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Corrección de estilo</dt><dd>1 corrector. Pule el tono sin tocar cifras, nombres ni atribuciones.</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Dirección de arte</dt><dd>1 director de arte. Título del número, copete, nota destacada y brief de tapa.</dd></div>
+          <div class="puesto"><dt><i class="marca m-agente" aria-hidden="true"></i>Tapa</dt><dd>3 ilustradores (tipográfico, metáfora visual, datos), un jurado editorial y otro visual, una ronda de corrección del ganador y un agente que compara la versión corregida con la original antes de quedarse con una.</dd></div>
+          <div class="puesto"><dt><i class="marca m-codigo" aria-hidden="true"></i>Producción digital</dt><dd>Python y plantillas Jinja2. Arma el borrador, el paquete de revisión y el número publicado.</dd></div>
+        </dl>
+        <p class="leyenda-staff"><span><i class="marca m-persona"></i>persona</span><span><i class="marca m-documento"></i>documento escrito por personas</span><span><i class="marca m-agente"></i>agente de IA</span><span><i class="marca m-codigo"></i>código, sin juicio editorial</span></p>
+      </div>
+      <figure class="diagrama">
+        <p class="pista-desliza" aria-hidden="true">Deslizá para ver el diagrama, o tocalo para abrir el interactivo.</p>
+        <a class="desliza" href="diagramas/redaccion.html"><picture>
+          <source srcset="img/redaccion-oscuro.png" media="(prefers-color-scheme: dark)" data-oscuro>
+          <img src="img/redaccion-claro.png" alt="Diagrama de la redacción: las personas y los agentes de cada etapa, desde las corresponsalías hasta el checkpoint humano." loading="lazy">
+        </picture></a>
+        <figcaption>La redacción por etapa. <a href="diagramas/redaccion.html">Ver el diagrama interactivo</a>.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="organizacion" aria-labelledby="t-organizacion">
+  <div class="contenedor">
+    <p class="rotulo"><span>Cómo se arma</span>Organización</p>
+    <div>
+      <h2 id="t-organizacion">Nueve secciones fijas y una nota de fondo.</h2>
+      <ul class="secciones-lista">
+        <li class="destacada">Nota de fondo<small>Una pieza analítica que sintetiza varias noticias de la semana en un ángulo propio. Periodismo de revista, no un resumen de noticias.</small></li>
+        <li>Modelos fundacionales y LLMs<small>Lanzamientos, benchmarks, open-weight o propietario</small></li>
+        <li>Hardware e infraestructura<small>Chips, data centers, energía</small></li>
+        <li>Regulación y política<small>Leyes, controles de exportación, IA militar</small></li>
+        <li>Seguridad y alineación<small>Interpretabilidad, incidentes, red-teaming</small></li>
+        <li>IA aplicada: ciencia y salud<small>Descubrimiento de fármacos, genómica, diagnóstico</small></li>
+        <li>IA aplicada: industria y robótica<small>Humanoides, agentes de código, vehículos autónomos</small></li>
+        <li>Argentina<small>CONICET, INVAP, política científica, data centers, startups</small></li>
+        <li>América Latina<small>Brasil, Chile, México, Colombia: regulación y ecosistema</small></li>
+        <li>Ciencia y Espacio: Patagonia<small>Satélites sobre la región, con datos en vivo del MCP patagonia-espacial</small></li>
+      </ul>
+
+      <h3>El recorrido de un número</h3>
+      <div class="texto"><p>Cada número corre desde una copia congelada del sistema, con la huella de cada archivo, para poder reproducirlo. La corrida que publicó el Nº 01 tardó unos 23 minutos, sin contar la revisión humana. Reusó la investigación de una corrida anterior que se cortó por límite de sesión: sólo Espacio se rehízo en vivo. Si una corrida se corta, la siguiente puede arrancar de esa semilla en lugar de volver a investigar.</p></div>
+      <ol class="recorrido">
+        <li><span><b>Investigación.</b> Las nueve corresponsalías trabajan en paralelo. Cada una entrega un solo ítem fuerte con su fuente.</span></li>
+        <li><span><b>Nota de fondo.</b> Un editor lee las nueve y escribe la pieza larga. Mientras tanto se verifican las secciones.</span></li>
+        <li><span><b>Libro de afirmaciones.</b> Cada nota se parte en afirmaciones atómicas y otro modelo verifica cada una contra fuentes.</span></li>
+        <li><span><b>Reconciliación.</b> Se comparan las notas entre sí. Cada conflicto se resuelve con un debate: defensor, escéptico y juez.</span></li>
+        <li><span><b>Consolidación.</b> Si dos fallos tocan las mismas afirmaciones, un juez los unifica en una sola resolución.</span></li>
+        <li><span><b>Cierre.</b> Se aplican los fallos con el mínimo cambio. El código controla que la corrección haya entrado de verdad.</span></li>
+        <li><span><b>Estilo.</b> Un corrector pule el texto. Si cambia una cifra o un nombre, su edición se descarta.</span></li>
+        <li><span><b>Arte.</b> Título del número, copete para lectores, nota destacada y brief de tapa.</span></li>
+        <li><span><b>Tapa.</b> Tres ilustradores dibujan en SVG, dos jurados puntúan, el ganador corrige lo que le marcaron y otro agente decide si la corrección mejoró la tapa.</span></li>
+        <li class="humano"><span><b>Checkpoint humano.</b> Quien revisa lee el paquete de revisión, aprueba o retira cada bloque y elige la tapa.</span></li>
+        <li class="humano"><span><b>Publicación.</b> Sólo con todas las decisiones firmadas y vigentes.</span></li>
+      </ol>
+      <figure class="diagrama">
+        <p class="pista-desliza" aria-hidden="true">Deslizá para ver el diagrama, o tocalo para abrir el interactivo.</p>
+        <a class="desliza" href="diagramas/recorrido.html"><picture>
+          <source srcset="img/recorrido-oscuro.png" media="(prefers-color-scheme: dark)" data-oscuro>
+          <img src="img/recorrido-claro.png" alt="Diagrama del recorrido de un número, de la investigación de las corresponsalías a la publicación, pasando por verificación, reconciliación, cierre, estilo, arte, tapa y checkpoint humano." loading="lazy">
+        </picture></a>
+        <figcaption>El recorrido completo. <a href="diagramas/recorrido.html">Ver el diagrama interactivo</a>.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="como-funciona" aria-labelledby="t-ia">
+  <div class="contenedor">
+    <p class="rotulo"><span>Con IA</span>Cómo funciona</p>
+    <div>
+      <h2 id="t-ia">Los agentes redactan y juzgan. El código decide qué pasa. Una persona firma.</h2>
+      <ul class="principios">
+        <li><b>Guardas en código</b>Todo lo que devuelve un agente pasa por controles determinísticos: cifras, citas literales, identificadores, largos. Lo que no pasa se marca como riesgo. Nunca se publica a medias.</li>
+        <li><b>Otro modelo para verificar</b>Los verificadores corren con el modelo que fija la corrida (Sonnet en el Nº 01), distinto del que redacta, para no compartir sesgos. Un «confirmado» sin enlace a la evidencia baja a «no verificable».</li>
+        <li><b>Nada se cae en silencio</b>Si falla un agente o una etapa entera, queda un aviso atado a la nota. Los bloqueantes exigen una decisión humana explícita.</li>
+        <li><b>Debate antes que veredicto único</b>Cuando dos notas no coinciden, un defensor sostiene la versión publicada, un escéptico intenta refutarla y un juez decide: mantener, corregir, retirar, matizar o dejarlo sin consenso.</li>
+        <li><b>Reproducible</b>Cada número corre desde una copia congelada del sistema. Hay una prueba de regresión contra el Nº 00, con sus errores conocidos.</li>
+        <li><b>El armado es código</b>Maquetar no es una decisión editorial. Si algo está mal en el contenido, el problema está antes.</li>
+      </ul>
+
+      <figure class="grafico" style="margin-top:2.6rem">
+        <figcaption>Las 148 afirmaciones del Nº 01, una celda cada una</figcaption>
+        <p class="sub">Estado final después de verificar, debatir y cerrar. Es lo que publica la caja «Cómo verificamos este número».</p>
+        <svg class="waffle" viewBox="0 0 736 76" role="img" aria-labelledby="waffle-t waffle-d">
+          <title id="waffle-t">Afirmaciones del Nº 01 por estado</title>
+          <desc id="waffle-d">148 afirmaciones: 136 confirmadas, 9 matizadas, 1 corregida, 1 no verificable y 1 con corrección no aplicada.</desc>
+          <rect class="w-conf" x="0" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="20" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="40" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="60" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="80" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="100" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="120" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="140" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="160" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="180" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="200" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="220" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="240" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="260" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="280" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="300" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="320" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="340" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="360" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="380" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="400" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="420" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="440" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="460" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="480" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="500" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="520" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="540" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="560" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="580" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="600" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="620" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="640" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="660" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="680" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="700" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="720" y="0" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="0" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="20" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="40" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="60" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="80" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="100" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="120" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="140" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="160" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="180" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="200" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="220" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="240" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="260" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="280" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="300" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="320" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="340" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="360" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="380" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="400" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="420" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="440" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="460" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="480" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="500" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="520" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="540" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="560" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="580" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="600" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="620" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="640" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="660" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="680" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="700" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="720" y="20" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="0" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="20" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="40" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="60" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="80" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="100" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="120" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="140" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="160" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="180" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="200" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="220" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="240" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="260" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="280" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="300" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="320" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="340" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="360" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="380" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="400" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="420" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="440" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="460" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="480" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="500" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="520" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="540" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="560" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="580" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="600" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="620" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="640" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="660" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="680" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="700" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="720" y="40" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="0" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="20" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="40" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="60" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="80" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="100" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="120" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="140" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="160" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="180" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="200" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="220" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="240" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="260" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="280" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="300" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="320" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="340" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="360" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="380" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="400" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="420" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="440" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="460" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-conf" x="480" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="500" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="520" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="540" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="560" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="580" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="600" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="620" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="640" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-mat" x="660" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-cor" x="680" y="60" width="16" height="16" rx="2"/>
+          <rect class="w-nv" x="701" y="61" width="14" height="14" rx="2"/>
+          <rect class="w-na" x="720" y="60" width="16" height="16" rx="2"/>
+        </svg>
+        <p class="leyenda-waffle">
+          <span><i style="background:var(--glaciar)"></i><b>136</b> confirmadas</span>
+          <span><i style="background:var(--senal)"></i><b>9</b> matizadas</span>
+          <span><i style="background:var(--tinta)"></i><b>1</b> corregida</span>
+          <span><i style="border:1.5px solid var(--tinta)"></i><b>1</b> no verificable</span>
+          <span><i style="background:var(--alerta)"></i><b>1</b> no aplicada</span>
+        </p>
+      </figure>
+
+      <h3>Ocho conflictos entre notas</h3>
+      <div class="texto"><p>Los detectores encontraron 8 conflictos en el Nº 01. Hubo 8 debates y 8 fallos. El cierre dio por aplicados 6 de los 8 fallos. Los otros dos quedaron pendientes en Espacio. C7 sí entró en Regulación, pero el cierre también lo mandó a Espacio. Ahí la guarda lo rechazó y el cierre de Espacio falló entero, arrastrando a C2 (las coordenadas del SAOCOM 1B). Espacio llegó al checkpoint con un riesgo bloqueante, y quien revisa corrigió las coordenadas a mano.</p></div>
+      <table class="fallos">
+        <thead><tr><th scope="col">Conflicto</th><th scope="col">Fallo del juez</th><th scope="col">Qué hizo el cierre</th></tr></thead>
+        <tbody>
+          <tr><td>C1</td><td>corregir</td><td class="ok">aplicado</td></tr>
+          <tr><td>C2</td><td>corregir (coordenadas del SAOCOM 1B)</td><td class="pendiente">no aplicado: el cierre de Espacio cayó entero por C7. Es la afirmación «no aplicada». Corregido a mano en el checkpoint</td></tr>
+          <tr><td>C3</td><td>mantener</td><td class="ok">sin cambios</td></tr>
+          <tr><td>C4, C5, C6, C8</td><td>matizar</td><td class="ok">aplicados</td></tr>
+          <tr><td>C7</td><td>matizar (fecha del proyecto FISA)</td><td class="ok">aplicado en Regulación. En Espacio, adonde el cierre lo mandó por error, la guarda lo rechazó</td></tr>
+        </tbody>
+      </table>
+      <p class="nota-fuente">Datos: <code>data/numero-01.json</code> y <code>runs/numero-01/NOTA.md</code>. Mandar un fallo a un bloque que no le corresponde era un error del cierre. Ya está corregido en el sistema.</p>
+
+      <div class="checkpoint">
+        <h3>El checkpoint humano</h3>
+        <div class="texto">
+          <p>Es la única etapa que la redacción no puede ejecutar, y el código lo impide. Un número pasa de borrador a en revisión, de ahí a aprobado y recién entonces a publicado. Quien revisa mira, bloque por bloque, los riesgos, las diferencias con la investigación original, la evidencia de cada afirmación, los debates y las tapas candidatas.</p>
+          <p>Aprobar, retirar, elegir la tapa y publicar exigen una terminal interactiva y la frase secreta de quien revisa. Cada decisión se firma con HMAC. Un agente puede escribir en el archivo de decisiones, pero no puede fabricar una decisión que se publique.</p>
+        </div>
+        <pre class="comandos" aria-label="Comandos del checkpoint">uv run condor revision 01        # paquete de revisión
+uv run condor aprobar 01 --todo  # sólo bloques sin riesgos
+uv run condor tapa 01 A2         # la tapa elegida en el Nº 01
+uv run condor publicar 01        # firma y publica</pre>
+        <div class="texto">
+          <p>La aprobación queda atada al contenido: si una nota cambia después de aprobada, la aprobación vence sola. Un bloque con riesgos no entra en la aprobación en lote. Pide una nota explícita que queda registrada. En el Nº 01, Pablo Sartorio aprobó los diez bloques; dos llevaron nota, y pidió dos correcciones manuales en Espacio y un copete escrito a mano.</p>
+        </div>
+        <p class="aparte">Un límite, dicho claro: un agente que corre con el mismo usuario del sistema podría, con intención, reemplazar la clave o modificar el código. Eso no se puede impedir desde adentro. Lo que el diseño sí garantiza es que no pase por accidente ni sin dejar rastro.</p>
+        <figure class="diagrama">
+          <p class="pista-desliza" aria-hidden="true">Deslizá para ver el diagrama, o tocalo para abrir el interactivo.</p>
+          <a class="desliza" href="diagramas/checkpoint.html"><picture>
+            <source srcset="img/checkpoint-oscuro.png" media="(prefers-color-scheme: dark)" data-oscuro>
+            <img src="img/checkpoint-claro.png" alt="Diagrama de estados de un número en la revisión humana: borrador, en revisión, aprobado y publicado, con los vencimientos de aprobación." loading="lazy">
+          </picture></a>
+          <figcaption>Estados de un número en la revisión. <a href="diagramas/checkpoint.html">Ver el diagrama interactivo</a>.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="numeros" aria-labelledby="t-numeros">
+  <div class="contenedor">
+    <p class="rotulo"><span>Archivo</span>Números publicados</p>
+    <div>
+      <h2 id="t-numeros">Dos números hasta ahora.</h2>
+      <div class="numeros">
+        <article class="ficha-numero">
+          <a href="https://github.com/pablosartorio/revista-ia/blob/main/output/numero-01/index.md"><img src="img/tapa-01.png" width="1200" height="1600" alt="Tapa del Nº 01, Megavatios en espera." loading="lazy"></a>
+          <div>
+            <p class="num">Nº 01 · 23 de septiembre de 2026 · Semana 2026-W39</p>
+            <h3>Megavatios en espera</h3>
+            <p>Argentina ofrece energía y Brasil resigna impuestos, pero los data centers para IA de la región siguen sin arrancar.</p>
+            <p class="datos" style="color:var(--tinta-2)">Primer número con la arquitectura completa. Publicado el 24/09/2026.</p>
+            <p class="enlaces"><a href="https://github.com/pablosartorio/revista-ia/blob/main/output/numero-01/index.md">Leer el Nº 01</a></p>
+          </div>
+        </article>
+        <article class="ficha-piloto">
+          <p class="num datos" style="color:var(--tinta-2);text-transform:uppercase;letter-spacing:.06em;margin:0">Nº 00 · piloto · septiembre de 2026</p>
+          <h3>Nadie estaba mirando</h3>
+          <p>Un ensayo de la primera arquitectura: 15 agentes, verificación por bloque y correcciones a mano. Sus errores son hoy la prueba de regresión del sistema.</p>
+          <p class="enlaces" style="font-family:var(--f-rotulo);font-weight:600;margin:0"><a href="https://github.com/pablosartorio/revista-ia/blob/main/output/numero-00/index.md">Leer el Nº 00</a></p>
+        </article>
+      </div>
+      <ul class="documentos">
+        <li><a href="https://github.com/pablosartorio/revista-ia/blob/main/README.md">Qué es el proyecto</a><br>La revista desde el punto de vista editorial: agentes, revisión y aprobación.</li>
+        <li><a href="https://github.com/pablosartorio/revista-ia/blob/main/docs/manual-tecnico.md">Manual técnico</a><br>Cómo correr un número, importar el resultado y pasar el checkpoint con <code class="datos">uv run condor</code>.</li>
+        <li><a href="https://github.com/pablosartorio/revista-ia/blob/main/docs/decisiones-y-mejoras.md">Decisiones y mejoras</a><br>Por qué la arquitectura es como es y qué falta.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    <p>Cóndor es un nombre de trabajo. Revista de IA, tecnología y ciencia hecha por una redacción de agentes con checkpoint humano. Código bajo licencia GPL v3.</p>
+    <p><a href="https://github.com/pablosartorio/revista-ia">github.com/pablosartorio/revista-ia</a></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var raiz = document.documentElement;
+  var boton = document.getElementById('tema');
+  var fuentes = document.querySelectorAll('source[data-oscuro]');
+  var oscuroSistema = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function aplicar(tema) {
+    if (tema === 'dark' || tema === 'light') raiz.setAttribute('data-theme', tema);
+    else raiz.removeAttribute('data-theme');
+    for (var i = 0; i < fuentes.length; i++) {
+      fuentes[i].media = tema === 'dark' ? 'all' : tema === 'light' ? 'not all' : '(prefers-color-scheme: dark)';
+    }
+    boton.setAttribute('aria-pressed', efectivo() === 'dark' ? 'true' : 'false');
+  }
+  function efectivo() {
+    var t = raiz.getAttribute('data-theme');
+    if (t) return t;
+    return oscuroSistema && oscuroSistema.matches ? 'dark' : 'light';
+  }
+  var guardado = null;
+  try { guardado = localStorage.getItem('condor-tema'); } catch (e) {}
+  aplicar(guardado);
+  boton.addEventListener('click', function () {
+    var nuevo = efectivo() === 'dark' ? 'light' : 'dark';
+    aplicar(nuevo);
+    try { localStorage.setItem('condor-tema', nuevo); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

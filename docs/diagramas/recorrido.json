@@ -1,0 +1,388 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Cómo se hace un número",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "backend": {
+          "label": "Etapa con agentes de IA"
+        },
+        "database": {
+          "label": "Registro guardado"
+        },
+        "security": {
+          "label": "Guarda o decisión humana"
+        },
+        "frontend": {
+          "label": "Número publicado"
+        }
+      }
+    },
+    "views": [
+      {
+        "id": "investigar",
+        "label": "Investigar y verificar",
+        "focus": [
+          "semilla",
+          "corresponsalias",
+          "nota_fondo",
+          "libro"
+        ],
+        "note": "Nueve corresponsalías investigan y cada dato de cada nota entra al libro de afirmaciones con un veredicto."
+      },
+      {
+        "id": "reconciliar",
+        "label": "Reconciliar y cerrar",
+        "focus": [
+          "libro",
+          "reconciliacion",
+          "debate",
+          "consolidacion",
+          "cierre",
+          "guarda"
+        ],
+        "note": "Se cruzan las notas entre sí, cada conflicto se debate y el cierre aplica los fallos sólo si pasan las guardas."
+      },
+      {
+        "id": "checkpoint",
+        "label": "Checkpoint humano",
+        "focus": [
+          "borrador",
+          "checkpoint",
+          "publicado",
+          "guarda"
+        ],
+        "note": "Ningún agente aprueba ni publica: una persona decide bloque por bloque y firma cada decisión."
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "investigacion",
+      "label": "Investigación"
+    },
+    {
+      "id": "verificacion",
+      "label": "Verificación"
+    },
+    {
+      "id": "reconciliacion_l",
+      "label": "Reconciliación"
+    },
+    {
+      "id": "fallos",
+      "label": "Fallos y cierre"
+    },
+    {
+      "id": "edicion",
+      "label": "Edición y tapa"
+    },
+    {
+      "id": "revision",
+      "label": "Revisión humana"
+    },
+    {
+      "id": "excepcion",
+      "label": "Si algo falla",
+      "variant": "exception"
+    },
+    {
+      "id": "publicacion",
+      "label": "Publicación"
+    }
+  ],
+  "mainPath": [
+    "corresponsalias",
+    "nota_fondo",
+    "libro",
+    "reconciliacion",
+    "debate",
+    "consolidacion",
+    "cierre",
+    "estilo_arte",
+    "tapa",
+    "borrador",
+    "checkpoint",
+    "publicado"
+  ],
+  "nodes": [
+    {
+      "id": "corresponsalias",
+      "lane": "investigacion",
+      "col": 0,
+      "width": 150,
+      "type": "backend",
+      "label": "Corresponsalías",
+      "sublabel": "9 en paralelo",
+      "tag": "web y MCP"
+    },
+    {
+      "id": "nota_fondo",
+      "lane": "investigacion",
+      "col": 1,
+      "width": 150,
+      "type": "backend",
+      "label": "Nota de fondo",
+      "sublabel": "tema transversal"
+    },
+    {
+      "id": "libro",
+      "lane": "verificacion",
+      "col": 1,
+      "width": 180,
+      "type": "database",
+      "label": "Libro de afirmaciones",
+      "sublabel": "un veredicto por dato"
+    },
+    {
+      "id": "reconciliacion",
+      "lane": "reconciliacion_l",
+      "col": 1,
+      "width": 176,
+      "type": "backend",
+      "label": "Reconciliación",
+      "sublabel": "cruzada: código + 2 lentes"
+    },
+    {
+      "id": "debate",
+      "lane": "reconciliacion_l",
+      "col": 2,
+      "width": 150,
+      "type": "backend",
+      "label": "Debate",
+      "sublabel": "defensor ‖ escéptico → juez",
+      "tag": "por conflicto"
+    },
+    {
+      "id": "consolidacion",
+      "lane": "fallos",
+      "col": 2,
+      "width": 150,
+      "type": "backend",
+      "label": "Consolidación",
+      "sublabel": "fallos que comparten datos"
+    },
+    {
+      "id": "cierre",
+      "lane": "fallos",
+      "col": 3,
+      "width": 150,
+      "type": "backend",
+      "label": "Cierre",
+      "sublabel": "aplica fallos con guardas",
+      "tag": "1 auto-reparación"
+    },
+    {
+      "id": "estilo_arte",
+      "lane": "edicion",
+      "col": 3,
+      "width": 150,
+      "type": "backend",
+      "label": "Estilo y arte",
+      "sublabel": "corrector y dirección de arte"
+    },
+    {
+      "id": "tapa",
+      "lane": "edicion",
+      "col": 4,
+      "width": 150,
+      "type": "backend",
+      "label": "Tapa",
+      "sublabel": "3 ilustradores y jurado"
+    },
+    {
+      "id": "borrador",
+      "lane": "revision",
+      "col": 4,
+      "width": 150,
+      "type": "database",
+      "label": "Borrador",
+      "sublabel": "data/numero-XX.json"
+    },
+    {
+      "id": "checkpoint",
+      "lane": "revision",
+      "col": 5,
+      "width": 150,
+      "type": "security",
+      "label": "Checkpoint humano",
+      "sublabel": "decide y firma por bloque",
+      "tag": "firmado"
+    },
+    {
+      "id": "publicado",
+      "lane": "publicacion",
+      "col": 5,
+      "width": 150,
+      "type": "frontend",
+      "label": "Publicado",
+      "sublabel": "output/numero-XX/index.html"
+    },
+    {
+      "id": "semilla",
+      "lane": "excepcion",
+      "col": 0,
+      "width": 150,
+      "type": "database",
+      "label": "Semilla",
+      "sublabel": "investigación ya hecha",
+      "tag": "opcional"
+    },
+    {
+      "id": "guarda",
+      "lane": "excepcion",
+      "col": 1,
+      "width": 150,
+      "type": "security",
+      "label": "Guarda bloqueante",
+      "sublabel": "nada se publica a medias"
+    }
+  ],
+  "edges": [
+    {
+      "id": "corresp-nota",
+      "from": "corresponsalias",
+      "to": "nota_fondo",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "corresp-libro",
+      "from": "corresponsalias",
+      "to": "libro",
+      "label": "secciones",
+      "variant": "default",
+      "role": "branch",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          123,
+          170
+        ],
+        [
+          180,
+          170
+        ],
+        [
+          180,
+          246
+        ]
+      ],
+      "labelSegment": 2,
+      "labelDy": 20
+    },
+    {
+      "id": "nota-libro",
+      "from": "nota_fondo",
+      "to": "libro",
+      "variant": "emphasis"
+    },
+    {
+      "id": "libro-recon",
+      "from": "libro",
+      "to": "reconciliacion",
+      "variant": "emphasis"
+    },
+    {
+      "id": "recon-debate",
+      "from": "reconciliacion",
+      "to": "debate",
+      "label": "conflictos",
+      "variant": "emphasis"
+    },
+    {
+      "id": "debate-consol",
+      "from": "debate",
+      "to": "consolidacion",
+      "variant": "emphasis"
+    },
+    {
+      "id": "consol-cierre",
+      "from": "consolidacion",
+      "to": "cierre",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cierre-estilo",
+      "from": "cierre",
+      "to": "estilo_arte",
+      "variant": "emphasis"
+    },
+    {
+      "id": "estilo-tapa",
+      "from": "estilo_arte",
+      "to": "tapa",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tapa-borrador",
+      "from": "tapa",
+      "to": "borrador",
+      "variant": "emphasis"
+    },
+    {
+      "id": "borrador-check",
+      "from": "borrador",
+      "to": "checkpoint",
+      "variant": "emphasis"
+    },
+    {
+      "id": "check-publicado",
+      "from": "checkpoint",
+      "to": "publicado",
+      "label": "publicar",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "right"
+    },
+    {
+      "id": "semilla-corresp",
+      "from": "semilla",
+      "to": "corresponsalias",
+      "label": "reemplaza",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "consol-guarda",
+      "from": "consolidacion",
+      "to": "guarda",
+      "label": "falla una guarda",
+      "variant": "security",
+      "role": "error",
+      "fromSide": "left",
+      "toSide": "top"
+    },
+    {
+      "id": "guarda-check",
+      "from": "guarda",
+      "to": "checkpoint",
+      "label": "decide una persona",
+      "variant": "security",
+      "role": "error"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Cada dato tiene veredicto",
+      "items": [
+        "Toda cifra de cada nota entra al libro con su evidencia: confirmado, no verificable o contradicho",
+        "Los conflictos entre notas se debaten y un juez da un solo fallo"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Decide una persona",
+      "items": [
+        "Si una guarda falla o una etapa se cae, el bloque queda bloqueado",
+        "Aprobar, retirar, elegir tapa y publicar exigen la frase de quien revisa"
+      ]
+    }
+  ]
+}

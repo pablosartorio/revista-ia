@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "El checkpoint humano",
+    "viewBox": [
+      880,
+      680
+    ],
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "camino",
+        "label": "Camino principal",
+        "focus": [
+          "workflow",
+          "borrador",
+          "en_revision",
+          "aprobado",
+          "publicado"
+        ],
+        "note": "Del resultado del workflow a la edición publicada, siempre con decisiones humanas firmadas."
+      },
+      {
+        "id": "decisiones",
+        "label": "Decisiones firmadas",
+        "focus": [
+          "en_revision",
+          "decision",
+          "retirado"
+        ],
+        "note": "Cada aprobación, retiro o elección de tapa pide la frase secreta y se firma con HMAC."
+      },
+      {
+        "id": "vencimientos",
+        "label": "Vencimientos",
+        "focus": [
+          "aprobado",
+          "vencida",
+          "decision",
+          "publicado",
+          "desactualizado"
+        ],
+        "note": "Si cambia lo aprobado, la decisión vence sola y hay que volver a decidir y a publicar."
+      }
+    ],
+    "legend": {
+      "entries": {
+        "start": {
+          "label": "inicio"
+        },
+        "active": {
+          "label": "en curso"
+        },
+        "waiting": {
+          "label": "decisión humana"
+        },
+        "success": {
+          "label": "publicado"
+        },
+        "failure": {
+          "label": "vencido o desactualizado"
+        },
+        "neutral": {
+          "label": "retirado"
+        },
+        "external": {
+          "label": "agentes"
+        }
+      }
+    }
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Estado del número"
+    },
+    {
+      "id": "revisor",
+      "label": "Quien revisa"
+    },
+    {
+      "id": "vence",
+      "label": "Vencimientos"
+    },
+    {
+      "id": "terminal",
+      "label": "Retiros y avisos"
+    }
+  ],
+  "states": [
+    {
+      "id": "workflow",
+      "type": "external",
+      "label": "Redacción",
+      "sublabel": "workflow de agentes",
+      "lane": "main",
+      "col": 0,
+      "tag": "agentes"
+    },
+    {
+      "id": "borrador",
+      "type": "start",
+      "label": "Borrador",
+      "sublabel": "condor importar",
+      "lane": "main",
+      "col": 1,
+      "step": "01",
+      "tag": "importado"
+    },
+    {
+      "id": "en_revision",
+      "type": "active",
+      "label": "En revisión",
+      "sublabel": "condor revision XX",
+      "lane": "main",
+      "col": 2,
+      "step": "02",
+      "tag": "paquete"
+    },
+    {
+      "id": "aprobado",
+      "type": "active",
+      "label": "Aprobado",
+      "sublabel": "todo decidido + tapa",
+      "lane": "main",
+      "col": 3,
+      "step": "03",
+      "tag": "listo"
+    },
+    {
+      "id": "publicado",
+      "type": "success",
+      "label": "Publicado",
+      "sublabel": "condor publicar",
+      "lane": "main",
+      "col": 4,
+      "step": "04",
+      "tag": "firmado"
+    },
+    {
+      "id": "decision",
+      "type": "waiting",
+      "label": "Decisión",
+      "sublabel": "aprobar · retirar · tapa",
+      "lane": "revisor",
+      "col": 0,
+      "tag": "HMAC",
+      "width": 112
+    },
+    {
+      "id": "vencida",
+      "type": "failure",
+      "label": "Vencida",
+      "sublabel": "cambió lo aprobado",
+      "lane": "vence",
+      "col": 1,
+      "tag": "hash",
+      "width": 112
+    },
+    {
+      "id": "retirado",
+      "type": "neutral",
+      "label": "Bloque retirado",
+      "sublabel": "sale del número",
+      "lane": "terminal",
+      "col": 0,
+      "tag": "retiro",
+      "width": 132
+    },
+    {
+      "id": "desactualizado",
+      "type": "failure",
+      "label": "Desactualizado",
+      "sublabel": "cambió algo publicado",
+      "lane": "terminal",
+      "col": 2,
+      "tag": "aviso"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "importar",
+      "from": "workflow",
+      "to": "borrador"
+    },
+    {
+      "id": "revisar",
+      "from": "borrador",
+      "to": "en_revision"
+    },
+    {
+      "id": "cerrar",
+      "from": "en_revision",
+      "to": "aprobado"
+    },
+    {
+      "id": "publicar",
+      "from": "aprobado",
+      "to": "publicado",
+      "variant": "emphasis"
+    },
+    {
+      "id": "decidir",
+      "from": "en_revision",
+      "to": "decision",
+      "label": "frase secreta",
+      "variant": "security",
+      "labelAt": [
+        350,
+        226
+      ]
+    },
+    {
+      "id": "registrar",
+      "from": "decision",
+      "to": "en_revision",
+      "label": "firma HMAC",
+      "variant": "security",
+      "labelAt": [
+        456,
+        240
+      ]
+    },
+    {
+      "id": "retirar",
+      "from": "decision",
+      "to": "retirado",
+      "label": "retirar",
+      "labelAt": [
+        402,
+        393
+      ]
+    },
+    {
+      "id": "vencer",
+      "from": "aprobado",
+      "to": "vencida",
+      "label": "hash distinto",
+      "variant": "dashed",
+      "labelAt": [
+        556,
+        233
+      ]
+    },
+    {
+      "id": "redecidir",
+      "from": "vencida",
+      "to": "decision"
+    },
+    {
+      "id": "cambiar",
+      "from": "publicado",
+      "to": "desactualizado",
+      "label": "cambió algo",
+      "variant": "dashed",
+      "labelAt": [
+        660,
+        390
+      ]
+    },
+    {
+      "id": "republicar",
+      "from": "desactualizado",
+      "to": "publicado",
+      "label": "volver a publicar",
+      "variant": "emphasis",
+      "labelAt": [
+        775,
+        300
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Camino principal",
+      "items": [
+        "El workflow deja data/numero-XX.json y condor importar lo carga como borrador",
+        "condor revision XX arma el paquete de revisión y pasa el número a en revisión",
+        "Aprobado exige todos los bloques con decisión vigente y una tapa elegida",
+        "condor publicar vuelve a verificar hashes y firmas antes de generar la edición"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Decisión humana",
+      "items": [
+        "Cada bloque se aprueba o se retira del número, uno por uno",
+        "Un bloque con riesgos no entra con --todo: exige --bloque y una nota",
+        "Cada decisión pide la frase secreta en una terminal interactiva y se firma con HMAC",
+        "Ningún agente puede aprobar, retirar, elegir tapa ni publicar"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Vencimientos",
+      "items": [
+        "Si el texto de un bloque cambia después de aprobarlo, el hash no coincide y la aprobación vence",
+        "Si aparecen riesgos nuevos, la aprobación también vence",
+        "Si cambian el título o el copete, vence la elección de tapa",
+        "Si algo cambia después de publicar, condor estado avisa que hay que volver a publicar"
+      ]
+    }
+  ]
+}

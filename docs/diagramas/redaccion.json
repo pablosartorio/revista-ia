@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "La redacción de Cóndor",
+    "output": "redaccion.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1350,
+      720
+    ],
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "external": {
+          "label": "Personas, fuera del código"
+        },
+        "backend": {
+          "label": "Agentes que escriben"
+        },
+        "security": {
+          "label": "Agentes que controlan"
+        },
+        "frontend": {
+          "label": "Número publicado"
+        }
+      }
+    },
+    "views": [
+      {
+        "id": "escriben",
+        "label": "Quién escribe",
+        "focus": [
+          "investigacion",
+          "fondo",
+          "estilo",
+          "arte",
+          "tapa"
+        ],
+        "note": "Corresponsales, editor/a de la feature, corrector, director/a de arte e ilustradores producen el número."
+      },
+      {
+        "id": "controlan",
+        "label": "Quién controla",
+        "focus": [
+          "verificacion",
+          "reconciliacion",
+          "consolidacion",
+          "cierre"
+        ],
+        "note": "Cada afirmación se verifica con otro modelo; los conflictos entre notas van a debate y un juez decide."
+      },
+      {
+        "id": "deciden",
+        "label": "Quién decide",
+        "focus": [
+          "linea",
+          "revisor",
+          "publicado"
+        ],
+        "note": "Dos personas: la línea editorial fija las reglas y sólo quien revisa aprueba, elige tapa y publica."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "linea",
+      "type": "external",
+      "label": "Línea editorial",
+      "sublabel": "persona · roles/00",
+      "tag": "humano",
+      "pos": [
+        20,
+        140
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "investigacion",
+      "type": "backend",
+      "label": "Investigación",
+      "sublabel": "8 beats web + Espacio",
+      "tag": "9 agentes",
+      "pos": [
+        300,
+        140
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "fondo",
+      "type": "backend",
+      "label": "Nota de fondo",
+      "sublabel": "editor/a de la feature",
+      "tag": "1 agente",
+      "pos": [
+        580,
+        140
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "verificacion",
+      "type": "security",
+      "label": "Verificación",
+      "sublabel": "extractores + verificador",
+      "tag": "otro modelo",
+      "pos": [
+        860,
+        140
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "reconciliacion",
+      "type": "security",
+      "label": "Reconciliación",
+      "sublabel": "2 lentes · debate · juez",
+      "tag": "hasta 32",
+      "pos": [
+        860,
+        340
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "consolidacion",
+      "type": "security",
+      "label": "Consolidación",
+      "sublabel": "juez de consolidación",
+      "tag": "0 a 3",
+      "pos": [
+        580,
+        340
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "cierre",
+      "type": "security",
+      "label": "Cierre",
+      "sublabel": "editor + reparación",
+      "tag": "hasta 20",
+      "pos": [
+        300,
+        340
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "estilo",
+      "type": "backend",
+      "label": "Estilo",
+      "sublabel": "corrector de estilo",
+      "tag": "1 agente",
+      "pos": [
+        300,
+        540
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "arte",
+      "type": "backend",
+      "label": "Arte",
+      "sublabel": "director/a de arte",
+      "tag": "1 agente",
+      "pos": [
+        580,
+        540
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "tapa",
+      "type": "backend",
+      "label": "Tapa",
+      "sublabel": "3 ilustradores · jurado",
+      "tag": "7 agentes",
+      "pos": [
+        860,
+        540
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "revisor",
+      "type": "external",
+      "label": "Checkpoint humano",
+      "sublabel": "quien revisa · roles/10",
+      "tag": "firma HMAC",
+      "pos": [
+        1160,
+        540
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "publicado",
+      "type": "frontend",
+      "label": "Número publicado",
+      "sublabel": "output/numero-XX/",
+      "pos": [
+        1160,
+        340
+      ],
+      "size": [
+        170,
+        80
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Jefe de redacción: orquestador en código (condor.workflow.js), no un agente",
+      "wraps": [
+        "investigacion",
+        "fondo",
+        "verificacion",
+        "reconciliacion",
+        "consolidacion",
+        "cierre",
+        "estilo",
+        "arte",
+        "tapa"
+      ],
+      "pad": 28
+    }
+  ],
+  "connections": [
+    {
+      "from": "linea",
+      "to": "investigacion",
+      "label": "en cada prompt",
+      "variant": "dashed"
+    },
+    {
+      "from": "investigacion",
+      "to": "fondo",
+      "label": "secciones",
+      "variant": "emphasis"
+    },
+    {
+      "from": "fondo",
+      "to": "verificacion",
+      "label": "bloques",
+      "variant": "emphasis"
+    },
+    {
+      "from": "verificacion",
+      "to": "reconciliacion",
+      "label": "afirmaciones",
+      "variant": "emphasis",
+      "labelAt": [
+        945,
+        280
+      ]
+    },
+    {
+      "from": "reconciliacion",
+      "to": "consolidacion",
+      "label": "fallos",
+      "variant": "emphasis"
+    },
+    {
+      "from": "consolidacion",
+      "to": "cierre",
+      "label": "un fallo por grupo",
+      "variant": "emphasis"
+    },
+    {
+      "from": "cierre",
+      "to": "estilo",
+      "label": "texto corregido",
+      "variant": "emphasis",
+      "labelAt": [
+        385,
+        480
+      ]
+    },
+    {
+      "from": "estilo",
+      "to": "arte",
+      "variant": "emphasis"
+    },
+    {
+      "from": "arte",
+      "to": "tapa",
+      "label": "brief",
+      "variant": "emphasis"
+    },
+    {
+      "from": "tapa",
+      "to": "revisor",
+      "label": "en borrador",
+      "variant": "security"
+    },
+    {
+      "from": "revisor",
+      "to": "publicado",
+      "label": "condor publicar",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Personas y código",
+      "items": [
+        "La línea editorial se inyecta en los prompts de cada agente",
+        "El jefe de redacción es código determinístico, no un agente",
+        "Sólo quien revisa aprueba, retira, elige tapa y publica"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Controles cruzados",
+      "items": [
+        "El verificador usa un modelo distinto al de la redacción",
+        "Lentes de hechos y cronología; defensor y escéptico debaten, un juez falla",
+        "Cada etapa termina con guardas en código"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Escala de un número",
+      "items": [
+        "Típico: 55 a 70 agentes; peor caso, unos 105",
+        "Nº 01: 75 agentes y 148 afirmaciones, 136 confirmadas",
+        "Nº 01: 8 conflictos entre notas, 8 fallos del juez"
+      ]
+    }
+  ]
+}
