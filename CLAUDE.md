@@ -2,8 +2,7 @@
 
 Revista de IA, tecnología y ciencia (foco Argentina/LatAm) escrita por agentes orquestados con
 Workflows de Claude Code, con verificación afirmación por afirmación, reconciliación cruzada entre
-notas, tapas SVG y un **checkpoint humano** antes de publicar. Diseño completo en `plan.md` (v2
-arriba, v1 abajo) y por rol en `roles/`.
+notas, tapas SVG y un **checkpoint humano** antes de publicar. Diseño completo en `plan.md` (v2.1 arriba, después v2 y v1) y por rol en `roles/`.
 
 ## Mapa
 - `pipeline/condor.workflow.js` — orquestador de un número. Etapas hijas en `pipeline/etapas/`:
@@ -52,4 +51,4 @@ y el director de arte escribe un `copete` para lectores (la portada ya no public
 Pendiente: repensar el nombre de la revista (hoy "Cóndor"; al cambiarlo, dejarlo en una sola
 constante); D1 (restaurar Oracle >300.000 GPUs en el Nº 00 publicado: decisión humana por el
 checkpoint); fechas relativas ("hoy jueves") en notas de beats en vivo; dimensiones "checkpoint" y
-"workflows" de la revisión adversarial; `plan.md` v2.1.
+"workflows" de la revisión adversarial.
